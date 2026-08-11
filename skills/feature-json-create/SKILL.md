@@ -1,5 +1,5 @@
 ---
-name: feature-json-create
+name: feature-json-init
 description: "Convert task into feature.json format."
 ---
 

@@ -22,7 +22,7 @@ npx skills add Dimabytes/feature-json --skill '*'
 task / PRD
    │
    ▼
-feature-json-create          →  current-task/feature.json
+feature-json-init          →  current-task/feature.json
    │
    ▼
 feature-json-orchestrate
@@ -38,8 +38,8 @@ docs/completed-tasks/<slug>/
 ## Skills
 
 | Skill                           | Role                                                       |
-| ------------------------------- | ---------------------------------------------------------- |
-| `feature-json-create`           | Interview, then write `current-task/feature.json`          |
+|---------------------------------| ---------------------------------------------------------- |
+| `feature-json-init`             | Interview, then write `current-task/feature.json`          |
 | `feature-json-create-step-plan` | Plan the next `passes: false` story                        |
 | `feature-json-implement-step`   | Implement one story, checks, commits, mark `passes: true`  |
 | `feature-json-step-review`      | Strict maintainability review; fixes when orchestrate asks |
@@ -53,7 +53,7 @@ npx skills update
 
 ## Usage
 
-1. Ask the agent to run **feature-json-create** on your task / PRD.
+1. Ask the agent to run **feature-json-init** on your task / PRD.
 2. Run **feature-json-orchestrate** to finish every pending user story.
 3. When done, find the archived task under `docs/completed-tasks/<slug>/`.
 

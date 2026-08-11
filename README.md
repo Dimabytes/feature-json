@@ -10,10 +10,10 @@ Install via the [Skills CLI](https://github.com/vercel-labs/skills) (`npx skills
 
 ```bash
 # Global (user-level)
-npx skills add Dimabytes/feature-json -g
+npx skills add Dimabytes/feature-json -g --skill '*'
 
 # Project level
-npx skills add Dimabytes/feature-json
+npx skills add Dimabytes/feature-json --skill '*'
 ```
 
 ## Workflow
@@ -37,14 +37,13 @@ docs/completed-tasks/<slug>/
 
 ## Skills
 
-| Skill | Role |
-|-------|------|
-| `feature-json-create` | Interview, then write `current-task/feature.json` |
-| `feature-json-create-step-plan` | Plan the next `passes: false` story |
-| `feature-json-implement-step` | Implement one story, checks, commits, mark `passes: true` |
-| `feature-json-step-review` | Strict maintainability review; fixes when orchestrate asks |
-| `feature-json-orchestrate` | Run the loop for all stories, then archive `current-task` |
-
+| Skill                           | Role                                                       |
+| ------------------------------- | ---------------------------------------------------------- |
+| `feature-json-create`           | Interview, then write `current-task/feature.json`          |
+| `feature-json-create-step-plan` | Plan the next `passes: false` story                        |
+| `feature-json-implement-step`   | Implement one story, checks, commits, mark `passes: true`  |
+| `feature-json-step-review`      | Strict maintainability review; fixes when orchestrate asks |
+| `feature-json-orchestrate`      | Run the loop for all stories, then archive `current-task`  |
 
 Update later:
 
@@ -62,10 +61,10 @@ You can also run plan / implement / step-review one story at a time.
 
 ## Folder convention
 
-| Path | Meaning |
-|------|---------|
-| `current-task/` | Active feature (`feature.json`, optional `learnings.txt`, …) |
-| `docs/completed-tasks/<slug>/` | Archived completed feature (same tree, renamed) |
+| Path                           | Meaning                                                      |
+| ------------------------------ | ------------------------------------------------------------ |
+| `current-task/`                | Active feature (`feature.json`, optional `learnings.txt`, …) |
+| `docs/completed-tasks/<slug>/` | Archived completed feature (same tree, renamed)              |
 
 ## Attribution
 

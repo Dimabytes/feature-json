@@ -19,7 +19,9 @@ Drive `current-task/feature.json` from start to finish with one story at a time.
    1. Pick the highest-priority pending story (lowest `priority` number among `passes: false`).
    2. **Plan** — run `feature-json-create-step-plan` for that story (subagent).
    3. **Implement** — run `feature-json-implement-step` with the exact story id and the plan (subagent).
-   4. **Review + fix** — run `feature-json-step-review` on the story's changes. Require review and apply fixes for actionable findings; re-check typecheck/lint; commit fixes when needed. (subagent)
+   4. **Review + fix** — run `feature-json-step-review` on the story's changes. Get the review results and pass it to Implementation subagent so it can fix it  (subagent)
+
+Steps 2.3 and 2.4 can run in the loop, until review agent confirm it's ok. Review subagent should not modify the code.
 
 For steps 2.2, 2.3, 2.4 use subagents. It's a hard rule. 
 

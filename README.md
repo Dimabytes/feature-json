@@ -6,7 +6,7 @@ Active work lives in `current-task/`. When orchestrate finishes the feature, tha
 
 ## Install
 
-Install via the [Skills CLI](https://github.com/vercel-labs/skills) (`npx skills`). Requires **Node.js 18+**. No global install needed.
+Install via the [Skills CLI](https://github.com/vercel-labs/skills) (`npx skills`). Requires **Node.js 18+**.
 
 ```bash
 # Global (user-level)
@@ -38,7 +38,7 @@ docs/completed-tasks/<slug>/
 ## Skills
 
 | Skill                           | Role                                                       |
-|---------------------------------| ---------------------------------------------------------- |
+| ------------------------------- | ---------------------------------------------------------- |
 | `feature-json-init`             | Interview, then write `current-task/feature.json`          |
 | `feature-json-create-step-plan` | Plan the next `passes: false` story                        |
 | `feature-json-implement-step`   | Implement one story, checks, commits, mark `passes: true`  |

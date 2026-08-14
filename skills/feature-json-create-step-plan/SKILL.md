@@ -6,7 +6,8 @@ description: Creates a detailed implementation plan for the next pending user st
 ## Your Task
 
 1. Read `current-task/feature.json`
-2. Read relatedSources in `current-task/feature.json`
-3. Pick next story with `passes: false` and highest priority. Work only on that story.
-4. Create implementation plan. In the plan add figma links if they are presented.
-5. In verification part of the plan add quality checks (e.g., typecheck, lint, test, test in the browser/curl)
+2. Read `current-task/progress.txt`
+3. Read relatedSources in `current-task/feature.json`
+4. Pick next story with `passes: false` and highest priority. Work only on that story.
+5. Create implementation plan. In the plan add figma links if they are presented.
+6. In verification part of the plan add quality checks (e.g., typecheck, lint, test, test in the browser/curl)

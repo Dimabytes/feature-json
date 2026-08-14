@@ -12,6 +12,8 @@ description: >
 
 Drive `current-task/feature.json` from start to finish with one story at a time. Don't stop until it's done.
 
+Important, don't overload your main context. Your job is simple orchestration between agents.
+
 ## Loop
 
 1. Read `current-task/feature.json` and its `relatedSources`.

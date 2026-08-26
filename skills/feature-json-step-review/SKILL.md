@@ -1,7 +1,7 @@
 ---
 name: feature-json-step-review
 description: >
-  Strict maintainability review for a just-implemented feature.json user story:
+  Strict maintainability review for a just-implemented feature.json user step:
   abstraction quality, giant files, spaghetti-condition growth, and code-judo
   simplifications. Use for feature-json step review, post-implement quality
   pass, or when delegated by feature-json-orchestrate. Prefer fixing actionable

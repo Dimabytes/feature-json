@@ -1,8 +1,42 @@
 # Feature JSON
 
+Complete stack to do work with complex, multistep tasks that don't fit in one context window.
+
+When AI agent work on complex task that produce thousands lines of code it will have fewer bugs and produce much better code
+if you split the task into steps and plan, implement and review each step individually.
+
 Turn a task into `feature.json`, then plan → implement → step-review until every user story passes.
 
-Active work lives in `current-task/`. When orchestrate finishes the feature, that folder is moved to `docs/completed-tasks/<short-slug>/` and committed.
+## How to use this
+
+1. Ask the agent to run **/feature-json-init** on your task / PRD / plan. 
+2. Review `current-task/feature.json and correct`. It's super important to invest your time at this stage. 
+
+Then it depends. If you want more control you can run each step of the loop by yourself and check things manually.  
+
+To do it you just run for each step
+
+1. /feature-json-manual-create-step-plan (it will interview you and create plan)
+2. /feature-json-implement-step and pass the file you generated on previous step
+3. /feature-json-step-review (and tell it what to review)
+
+If you want to automate this loop you can just run /feature-json-orchestrate. It will do same steps.
+
+## What is `feature.json`
+
+It's a file where you have all your steps described.
+
+## Skills
+
+| Skill                           | Role                                                      |
+| ------------------------------- |-----------------------------------------------------------|
+| `feature-json-init`             | Create `current-task/feature.json`                        |
+| `feature-json-create-step-plan` | Plan the next step                                        |
+| `feature-json-implement-step`   | Implement step                                            |
+| `feature-json-step-review`      | Strict maintainability review                             |
+| `feature-json-orchestrate`      | Run the loop for all stories, then archive `current-task` |
+
+Active work lives in `current-task/`.
 
 ## Install
 
@@ -16,48 +50,11 @@ npx skills add Dimabytes/feature-json -g --skill '*'
 npx skills add Dimabytes/feature-json --skill '*'
 ```
 
-## Workflow
-
-```text
-task / PRD
-   │
-   ▼
-feature-json-init          →  current-task/feature.json
-   │
-   ▼
-feature-json-orchestrate
-   ├─ create-step-plan
-   ├─ implement-step
-   └─ step-review (+ fix)
-        …repeat per US…
-   │
-   ▼
-docs/completed-tasks/<slug>/
-```
-
-## Skills
-
-| Skill                           | Role                                                       |
-| ------------------------------- | ---------------------------------------------------------- |
-| `feature-json-init`             | Interview, then write `current-task/feature.json`          |
-| `feature-json-create-step-plan` | Plan the next `passes: false` story                        |
-| `feature-json-implement-step`   | Implement one story, checks, commits, mark `passes: true`  |
-| `feature-json-step-review`      | Strict maintainability review; fixes when orchestrate asks |
-| `feature-json-orchestrate`      | Run the loop for all stories, then archive `current-task`  |
-
 Update later:
 
 ```bash
 npx skills update
 ```
-
-## Usage
-
-1. Ask the agent to run **feature-json-init** on your task / PRD.
-2. Run **feature-json-orchestrate** to finish every pending user story.
-3. When done, find the archived task under `docs/completed-tasks/<slug>/`.
-
-You can also run plan / implement / step-review one story at a time.
 
 ## Folder convention
 

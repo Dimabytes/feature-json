@@ -11,7 +11,7 @@ description: "Convert task into feature.json format."
    Ask about technical implementation, UI/UX, edge cases, concerns, and tradeoffs. Don't ask obvious questions, dig into the hard parts I might not have considered.
 4. Create `current-task/feature.json` (create the `current-task/` folder if needed).
 
-Active work always lives in `current-task/`. When `feature-json-orchestrate` finishes every story, it moves that folder to `docs/completed-tasks/<short-slug>/`.
+Active work always lives in `current-task/`. When `feature-json-orchestrate` finishes every step, it moves that folder to `docs/completed-tasks/<short-slug>/`.
 
 ---
 
@@ -29,11 +29,11 @@ Active work always lives in `current-task/`. When `feature-json-orchestrate` fin
    ],
    "Resolved Questions": [],
    "Non-Goals (Out of Scope for V1)": [
-      "Status change history or audit log",
+      "Status change histep or audit log",
       "Custom user-defined statuses"
    ],
    "description": "Task Status Feature - Track task progress with status indicators",
-   "userStories": [
+   "steps": [
       {
          "id": "US-001",
          "title": "Add status field to tasks table",
@@ -100,11 +100,11 @@ In designReference field, add Figma link or path to images.
 
 ---
 
-## Story Size: The Number One Rule
+## step Size: The Number One Rule
 
-**Each story must be completable in one context window, around 128k tokens.**
+**Each step must be completable in one context window, around 128k tokens.**
 
-### Right-sized stories:
+### Right-sized steps:
 - Add a database column and migration
 - Add a UI component to an existing page
 - Update a server action with new logic
@@ -113,15 +113,15 @@ In designReference field, add Figma link or path to images.
 ### Too big (split these):
 - "Build the entire dashboard" - Split into: schema, queries, UI components, filters
 - "Add authentication" - Split into: schema, middleware, login UI, session handling
-- "Refactor the API" - Split into one story per endpoint or pattern
+- "Refactor the API" - Split into one step per endpoint or pattern
 
 **Rule of thumb:** If you cannot describe the change in 2-3 sentences, it is too big.
 
 ---
 
-## Story Ordering: Dependencies First
+## step Ordering: Dependencies First
 
-Stories execute in priority order. Earlier stories must not depend on later ones.
+Steps execute in priority order. Earlier steps must not depend on later ones.
 
 **Correct order:**
 1. Schema/database changes (migrations)
@@ -137,7 +137,7 @@ Stories execute in priority order. Earlier stories must not depend on later ones
 
 ## Changes: Only What Actually Changes, And Must Be Verifiable
 
-Each story has a `changes` array. Each entry is one concrete thing the story does to the codebase, or a verification step required to call the story done.
+Each step has a `changes` array. Each entry is one concrete thing the step does to the codebase, or a verification step required to call the step done.
 
 ### Rule 1: List only what actually changes
 
@@ -171,39 +171,39 @@ Bad (vague):
 
 ### Required verification entries
 
-Verification steps live in the `changes` array as the final entries of the story. They represent the proofs that the story is done.
+Verification steps live in the `changes` array as the final entries of the step. They represent the proofs that the step is done.
 
 Always include as the final entry:
 ```
 "Typecheck passes"
 ```
 
-For stories with unit-testable logic include:
+For steps with unit-testable logic include:
 ```
 "Add or update automated tests"
 "Tests pass"
 ```
 
-For backend / API stories that add or change endpoints include:
+For backend / API steps that add or change endpoints include:
 ```
 "Run the backend locally and manually verify the changed endpoint or flow"
 ```
 
-For stories that change browser UI include:
+For steps that change browser UI include:
 ```
 "Verify in browser using agent-browser mcp"
 ```
 
 Mobile/hybrid app UI is verified in the browser via the project's dev server, not on a real device or simulator.
 
-Frontend stories are NOT complete until visually verified.
+Frontend steps are NOT complete until visually verified.
 
 ---
 
 ## Conversion Rules
 
-1. **Each user story becomes one JSON entry**
+1. **Each user step becomes one JSON entry**
 2. **IDs**: Sequential (US-001, US-002, etc.)
 3. **Priority**: Based on dependency order, then document order
-4. **All stories**: `passes: false`
+4. **All steps**: `passes: false`
 ---

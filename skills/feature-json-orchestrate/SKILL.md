@@ -12,29 +12,28 @@ description: >
 
 Drive `current-task/feature.json` from start to finish with one story at a time. Don't stop until it's done.
 
-Important, don't overload your main context. Your job is simple orchestration between agents.
+Don't overload your main context. Orchestrate only — spawn subagents, don't fix code yourself
 
 ## Loop
 
-1. Read `current-task/feature.json` and its `relatedSources`.
-2. While any user story has `passes: false`:
-   1. Pick the highest-priority pending story (lowest `priority` number among `passes: false`).
-   2. **Plan** — run `feature-json-create-step-plan` for that story (subagent).
-   3. **Implement** — run `feature-json-implement-step` with the exact story id and the plan (subagent).
-   4. **Review + fix** — run `feature-json-step-review` on the story's changes. Get the review results and pass it to Implementation subagent so it can fix it  (subagent)
+1. Read `current-task/feature.json` (including relatedSources) and `current-task/progress.txt`
+2. While any user story has `passes: false`, run **Plan → Implement → Review → Fix** for the highest-priority pending story (`passes: false`, lowest `priority` number).
 
-Steps 2.3 and 2.4 can run in the loop, until review agent confirm it's ok. Review subagent should not modify the code.
+### Plan (subagent)
 
-For steps 2.2, 2.3, 2.4 use subagents. It's a hard rule. 
+Subagent should use skill `feature-json-implement-step`. Plan should be written to `current-task/plans/<story-id>.md`.
 
-## Archive when the feature is done
+### Implement (subagent)
 
-When every user story has `passes: true`:
+Subagent should use skill `feature-json-implement-step`. Pass the story id and the plan path `current-task/plans/<story-id>.md`. Save the subagent id (`resume` id).
 
-1. Derive a short filesystem-safe kebab-case slug from `description`.
-   - Keep it short (roughly 3–6 words). Example: `Task Status` → `task-status-feature`.
-2. Ensure `docs/completed-tasks/` exists in the **project** repo (create if missing).
-3. If `docs/completed-tasks/<slug>/` already exists, append `-2`, `-3`, … until unique.
-4. Move the entire `current-task/` directory to `docs/completed-tasks/<slug>/` (preserve the tree: `feature.json`, `learnings.txt`, and any other files).
-5. Commit in the project repo, e.g. `docs: archive completed task <slug>`.
-6. Tell the user the archive path.
+### Review (subagent)
+
+- `feature-json-step-review`
+
+### Fix
+
+- If review have no comments at all set `passes: true`, append a one-line review note to `progress.txt`, continue to the next story.
+- If there are findings: **resume the same implementer** once, paste both review outputs. Then set `passes: true` (even if it skipped some nits) and continue
+- You are not deciding what should be fixed. Implementer will take this decision.
+

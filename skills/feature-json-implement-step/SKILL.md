@@ -1,45 +1,43 @@
 ---
 name: feature-json-implement-step
-description: Implements a specific user story from feature.json. Requires the exact story number and an execution plan as input. Reads the PRD, feature spec, then implements, tests, commits. Invoke manually or via feature-json-orchestrate.
+description: Payflow Implements a specific user story from feature.json. Requires the exact story number and an execution plan as input. Reads the PRD, feature spec, and progress log, then implements, tests, commits, and logs progress. This skill must only be invoked manually by the user — never auto-triggered by other skills or agents.
+disable-model-invocation: true
 ---
 
 ## Your Task
 
-1. Read `current-task/feature.json` and `current-task/progress.txt`
-2. Read relatedSources in `current-task/feature.json`
-3. Pick story specified by user. Work only on that story.
-4. Implement that user story
-5. Run the project's appropriate type check and linter check commands — both must pass with 0 errors. Use the project's package scripts, docs, or learnings to identify the correct commands instead of assuming fixed script names. 
-6. Update the PRD to set `passes: true` for the completed story 
+1. Read `current-task/feature.json` (including relatedSources) and `current-task/progress.txt`
+2. Pick story(s) specified by user. Work only on those stories.
+3. Implement those user stories.
+4. Run the project's appropriate type check and linter check commands.
+5. Update the PRD to set `passes: true` for the completed story
+6. Append your progress to `current-task/progress.txt`
 7. Commit the changes. When the project has no such convention, use message: `feat: [Story ID] - [Story Title]`.
-
 
 Progress Report Format
 APPEND to progress.txt (never replace, always append, create file if missing):
+This progress will be used by future agents to understand where things stand
 
 ## [Date/Time] - [Story ID]
+
 - What was implemented
 - **Learnings for future iterations:**
-    - Patterns discovered (e.g., "this codebase uses X for Y")
-    - Gotchas encountered (e.g., "don't forget to update Z when changing W")
-    - Useful context (e.g., "the evaluation panel is in component X")
+  - Patterns discovered (e.g., "this codebase uses X for Y")
+  - Gotchas encountered (e.g., "don't forget to update Z when changing W")
+  - Useful context (e.g., "the evaluation panel is in component X")
+
 ---
+
 Keep is short. Small sentences. Bullet points.
-
-## Quality Requirements
-
-- ALL commits must pass your project's quality checks (typecheck, lint, test)
-- Do NOT commit broken code
-- Keep changes focused and minimal
-- Follow existing code patterns
-
-save `current-task/learnings.txt` if something will be needed for next stories
 
 ## Important
 
-- Work only on story specified in the task.
-- Do git branch operations inside the actual project repo you are changing, not automatically in the outer workspace repo.
-- Do not require a story-specific branch name such as `UserStory1` or a branch per story.
-- Reuse the current feature branch when appropriate, or create a general feature branch name that can hold multiple story commits for the same feature.
-- Never run a destructive git command (force push, hard reset, branch -D, no-verify) without explicit approval - already in AGENTS.md but worth restating.
-- Keep CI green
+- Do NOT commit broken code
+- Keep changes focused and minimal
+- Follow existing code patterns
+- By default use the current feature branch.
+
+## If you are running as subagent
+
+If the parent resumes you with review findings: fix it. Don't be lazy, but sometimes reviewer can do mistakes.
+Sometimes reviewer can mark things as NIT when it's actually not NIT. Sometimes vise verca.

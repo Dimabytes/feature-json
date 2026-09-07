@@ -12,7 +12,7 @@ disable-model-invocation: true
 4. Run the project's appropriate type check and linter check commands.
 5. Update the PRD to set `passes: true` for the completed step
 6. Append your progress to `current-task/progress.txt`
-7. Commit the changes. When the project has no such convention, use message: `feat: [step ID] - [step Title]`.
+7. Commit the changes. When the project has no convention, use message: `feat: [step ID] - [step Title]`.
 
 Progress Report Format
 APPEND to progress.txt (never replace, always append, create file if missing):
@@ -40,4 +40,4 @@ Keep is short. Small sentences. Bullet points.
 ## If you are running as subagent
 
 If the parent resumes you with review findings: fix it. Don't be lazy, but sometimes reviewer can do mistakes.
-Sometimes reviewer can mark things as NIT when it's actually not NIT. Sometimes vise verca.
+Sometimes reviewer can mark things as NIT when it's actually not NIT. Sometimes vise versa.

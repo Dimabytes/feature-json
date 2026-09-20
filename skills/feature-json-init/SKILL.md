@@ -10,9 +10,6 @@ description: "Convert task into feature.json format."
 3. Ask for clarifications (you will use answers to fill Resolved Questions section). Interview in detail using the tool you have.
    Ask about technical implementation, UI/UX, edge cases, concerns, and tradeoffs. Don't ask obvious questions, dig into the hard parts I might not have considered.
 4. Create `current-task/feature.json` (create the `current-task/` folder if needed).
-
-Active work always lives in `current-task/`. When `feature-json-orchestrate` finishes every step, it moves that folder to `docs/completed-tasks/<short-slug>/`.
-
 ---
 
 ## Output Format
@@ -29,11 +26,11 @@ Active work always lives in `current-task/`. When `feature-json-orchestrate` fin
    ],
    "Resolved Questions": [],
    "Non-Goals (Out of Scope for V1)": [
-      "Status change histep or audit log",
+      "Status change history or audit log",
       "Custom user-defined statuses"
    ],
    "description": "Task Status Feature - Track task progress with status indicators",
-   "steps": [
+   "userStories": [
       {
          "id": "US-001",
          "title": "Add status field to tasks table",
@@ -47,6 +44,7 @@ Active work always lives in `current-task/`. When `feature-json-orchestrate` fin
          ],
          "priority": 1,
          "passes": false,
+         "ticket": "",
          "designReference": []
       },
       {
@@ -61,6 +59,7 @@ Active work always lives in `current-task/`. When `feature-json-orchestrate` fin
          ],
          "priority": 2,
          "passes": false,
+         "ticket": "",
          "designReference": []
       },
       {
@@ -76,6 +75,7 @@ Active work always lives in `current-task/`. When `feature-json-orchestrate` fin
          ],
          "priority": 3,
          "passes": false,
+         "ticket": "",
          "designReference": []
       },
       {
@@ -90,17 +90,20 @@ Active work always lives in `current-task/`. When `feature-json-orchestrate` fin
          ],
          "priority": 4,
          "passes": false,
+         "ticket": "",
          "designReference": []
       }
    ]
 }
 ```
 
-In designReference field, add Figma link or path to images.
+In `designReference`, add Figma link or path to images.
+
+`ticket` is the tracker key (Jira, Linear, etc.). Leave it `""` — the user fills it in later. Do not invent a key.
 
 ---
 
-## step Size: The Number One Rule
+## Step Size: The Number One Rule
 
 **Each step must be completable in one context window, around 128k tokens.**
 

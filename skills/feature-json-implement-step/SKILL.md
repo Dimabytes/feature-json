@@ -6,12 +6,16 @@ disable-model-invocation: true
 
 ## Your Task
 
-1. Read `current-task/feature.json` (including relatedSources) and `current-task/progress.txt`
+If `.feature-json.config.json` exists in the repo root, follow every line in `implement.instructions`.
+
+Task folder `tasks/<slug>/`: the slug you were given.
+
+1. Read `tasks/<slug>/feature.json` (including relatedSources) and `tasks/<slug>/progress.txt`
 2. Pick step(s) specified by user. Work only on those steps.
 3. Implement those user steps.
 4. Run the project's appropriate type check and linter check commands.
 5. Update the PRD to set `passes: true` for the completed step
-6. Append your progress to `current-task/progress.txt`
+6. Append your progress to `tasks/<slug>/progress.txt`
 7. Commit the changes. When the project has no convention, use message: `feat: [step ID] - [step Title]`.
 
 Progress Report Format

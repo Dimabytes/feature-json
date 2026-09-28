@@ -5,11 +5,13 @@ description: "Convert task into feature.json format."
 
 ## The Job
 
+If `.feature-json.config.json` exists in the repo root, follow every line in `init.instructions`.
+
 1. Take user input (PRD, RFC, task description, etc.)
 2. Read it carefully to understand the requirements.
 3. Ask for clarifications (you will use answers to fill Resolved Questions section). Interview in detail using the tool you have.
    Ask about technical implementation, UI/UX, edge cases, concerns, and tradeoffs. Don't ask obvious questions, dig into the hard parts I might not have considered.
-4. Create `current-task/feature.json` (create the `current-task/` folder if needed).
+4. Create `tasks/<slug>/feature.json`. `<slug>` is a short kebab-case name of the task, e.g. `task-status`. If the folder exists, ask for another name.
 ---
 
 ## Output Format
@@ -30,9 +32,9 @@ description: "Convert task into feature.json format."
       "Custom user-defined statuses"
    ],
    "description": "Task Status Feature - Track task progress with status indicators",
-   "userStories": [
+   "steps": [
       {
-         "id": "US-001",
+         "id": "STEP-001",
          "title": "Add status field to tasks table",
          "description": "As a developer, I need to store task status in the database so that other features can read and write status.",
          "changes": [
@@ -48,7 +50,7 @@ description: "Convert task into feature.json format."
          "designReference": []
       },
       {
-         "id": "US-002",
+         "id": "STEP-002",
          "title": "Display status badge on task cards",
          "description": "As a user, I want to see task status at a glance so that I know which tasks need attention.",
          "changes": [
@@ -63,7 +65,7 @@ description: "Convert task into feature.json format."
          "designReference": []
       },
       {
-         "id": "US-003",
+         "id": "STEP-003",
          "title": "Add status toggle to task list rows",
          "description": "As a user, I want to change task status directly from the list so that I can update progress quickly.",
          "changes": [
@@ -79,7 +81,7 @@ description: "Convert task into feature.json format."
          "designReference": []
       },
       {
-         "id": "US-004",
+         "id": "STEP-004",
          "title": "Filter tasks by status",
          "description": "As a user, I want to filter the list to see only certain statuses so that I can focus on relevant tasks.",
          "changes": [
@@ -206,7 +208,7 @@ Frontend steps are NOT complete until visually verified.
 ## Conversion Rules
 
 1. **Each user step becomes one JSON entry**
-2. **IDs**: Sequential (US-001, US-002, etc.)
+2. **IDs**: Sequential (STEP-001, STEP-002, etc.)
 3. **Priority**: Based on dependency order, then document order
 4. **All steps**: `passes: false`
 ---

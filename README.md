@@ -10,7 +10,7 @@ Turn a task into `feature.json`, then plan → implement → step-review until e
 ## How to use this
 
 1. Ask the agent to run **/feature-json-init** on your task / PRD / plan. 
-2. Review `current-task/feature.json and correct`. It's super important to invest your time at this stage. 
+2. Review `tasks/<slug>/feature.json` and correct it. It's super important to invest your time at this stage. 
 
 Then it depends. If you want more control you can run each step of the loop by yourself and check things manually.  
 
@@ -26,17 +26,26 @@ If you want to automate this loop you can just run /feature-json-orchestrate. It
 
 It's a file where you have all your steps described.
 
+## Project config
+
+Optional `.feature-json.config.json` in the repo root, committed with the project. It sets the model for plan / implement / review and extra rules for each phase. No file → the default loop on the current model.
+
+Run **/feature-json-config** once per project. It asks you questions and writes the file. Run it again to change a model or add a rule. The format and an example are in [`skills/feature-json-config/SKILL.md`](skills/feature-json-config/SKILL.md).
+
+A model that the current harness cannot run (e.g. Devin from Claude Code) needs [herdr-fleet](https://github.com/Dimabytes/herdr-fleet).
+
 ## Skills
 
 | Skill                           | Role                                                      |
 | ------------------------------- |-----------------------------------------------------------|
-| `feature-json-init`             | Create `current-task/feature.json`                        |
+| `feature-json-config`           | Create or change `.feature-json.config.json` (once per project) |
+| `feature-json-init`             | Create `tasks/<slug>/feature.json`                        |
 | `feature-json-create-step-plan` | Plan the next step                                        |
 | `feature-json-implement-step`   | Implement step                                            |
 | `feature-json-step-review`      | Strict maintainability review                             |
-| `feature-json-orchestrate`      | Run the loop for all stories, then archive `current-task` |
+| `feature-json-orchestrate`      | Run the loop until every step passes                      |
 
-Active work lives in `current-task/`.
+Every task lives in `tasks/<slug>/`.
 
 ## Install
 
@@ -60,8 +69,8 @@ npx skills update
 
 | Path                           | Meaning                                                      |
 | ------------------------------ | ------------------------------------------------------------ |
-| `current-task/`                | Active feature (`feature.json`, optional `learnings.txt`, …) |
-| `docs/completed-tasks/<slug>/` | Archived completed feature (same tree, renamed)              |
+| `tasks/<slug>/`                | One task: `feature.json`, `progress.txt`, `plans/`, … Done tasks stay here |
+| `.feature-json.config.json`     | Optional project config, see [Project config](#project-config) |
 
 ## Attribution
 

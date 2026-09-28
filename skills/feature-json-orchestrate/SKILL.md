@@ -23,9 +23,10 @@ If `.feature-json.config.json` exists in the repo root, read it first. Follow ev
 
 `plan.model`, `implement.model` and `review.model` set the model for each role. Before the first step, decide how each role runs:
 
-1. You can start your own subagent on this model (Cursor on a Grok model, Claude Code on an Opus model) → do that. No Herdr.
-2. Otherwise find an agent with this `model` in `.herdr-fleet.config.json` in the repo root (skill `herdr-fleet`, use it, it's important). IT'S IMPORTANT TO USE HERDR IF `.herdr-fleet.config.json` exist and model is from different harness
-3. Otherwise stop before the first step. Tell the user which role cannot run and why: the model is not available here, no herdr-fleet agent has it, or you are not inside Herdr.
+1. Find an agent with this `model` in `.herdr-fleet.config.json` in the repo root (skill `herdr-fleet`, use it, it's important). IT'S IMPORTANT TO USE HERDR IF `.herdr-fleet.config.json` exist and model is from different harness
+2. Otherwise stop before the first step. Tell the user which role cannot run and why: the model is not available here, no herdr-fleet agent has it, or you are not inside Herdr.
+
+If you can't find .herdr-fleet.config.json or herdr is not installed, ask user what models to use
 
 Use the same rules for a model named in `orchestrate.instructions`.
 

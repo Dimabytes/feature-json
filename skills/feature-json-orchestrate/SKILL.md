@@ -2,8 +2,9 @@
 name: feature-json-orchestrate
 description: >
   Run the full feature.json loop until every step passes: plan each
-  pending step, implement it, then run feature-json-step-review (fix
-  findings). Use when the user says orchestrate feature.json, run all
+  pending step, implement it, then run feature-json-step-review and
+  feature-json-no-comments in parallel and send both reports to the main
+  agent. Use when the user says orchestrate feature.json, run all
   steps, or finish the current feature.
 ---
 
@@ -46,9 +47,12 @@ Agent should use skill `feature-json-create-step-plan`. Plan should be written t
 
 Agent should use skill `feature-json-implement-step`. Pass the step id and the plan path `tasks/<slug>/plans/<step-id>.md`. Save the subagent id (`resume` id).
 
-### Review (agent)
+### Review (two agents, in parallel)
+
+Spawn both at once
 
 - `feature-json-step-review`
+- `feature-json-no-comments-review`
 
 ### Fix
 

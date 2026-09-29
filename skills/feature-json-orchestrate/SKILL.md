@@ -33,6 +33,10 @@ Use the same rules for a model named in `orchestrate.instructions`.
 
 "Agent" below means a subagent or a Herdr agent, whichever the role got.
 
+### Fresh context
+
+Each phase of each step gets a new agent. Keep the implementer only until its Fix ends. No `/new`: start a new agent.
+
 ## Loop
 
 1. Read `tasks/<slug>/feature.json` (including relatedSources) and `tasks/<slug>/progress.txt`

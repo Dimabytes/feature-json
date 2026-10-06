@@ -1,7 +1,6 @@
 ---
 name: feature-json-implement-step
 description: Implements a specific user step from feature.json. Requires the exact step number and an execution plan as input. Reads the PRD, feature spec, and progress log, then implements, tests, commits, and logs progress. This skill must only be invoked manually by the user — never auto-triggered by other skills or agents.
-disable-model-invocation: true
 ---
 
 ## Your Task

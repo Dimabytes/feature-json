@@ -1,7 +1,6 @@
 ---
 name: feature-json-create-step-plan
 description: Creates a detailed implementation plan for the next pending user step in feature.json
-disable-model-invocation: true
 ---
 
 ## Your Task

@@ -1,7 +1,6 @@
 ---
 name: feature-json-manual-create-step-plan
 description: For human-use only (it ask questions from user). Creates a detailed implementation plan for the next pending user step in feature.json
-disable-model-invocation: true
 ---
 
 ## Your Task

@@ -22,16 +22,22 @@ If `.feature-json.config.json` exists in the repo root, read it first. Follow ev
 
 ### Models
 
-`plan.model`, `implement.model` and `review.model` set the model for each role. Before the first step, decide how each role runs:
+`plan.model`, `implement.model`, `review.model` (step review) and `noCommentsReview.model` set the model for each role. A `model` is a herdr-fleet agent name or a model id. Before the first step, decide how each role runs:
 
-1. Find an agent with this `model` in `.herdr-fleet.config.json` in the repo root (skill `herdr-fleet`, use it, it's important). IT'S IMPORTANT TO USE HERDR IF `.herdr-fleet.config.json` exist and model is from different harness
+1. Find the agent with this name, else the agent with this `model`, in `.herdr-fleet.config.json` in the repo root (skill `herdr-fleet`, use it, it's important). IT'S IMPORTANT TO USE HERDR IF `.herdr-fleet.config.json` exist and model is from different harness
 2. Otherwise stop before the first step. Tell the user which role cannot run and why: the model is not available here, no herdr-fleet agent has it, or you are not inside Herdr.
 
 If you can't find .herdr-fleet.config.json or herdr is not installed, ask user what models to use
 
-Use the same rules for a model named in `orchestrate.instructions`.
+Use the same rules for `orchestrate.agents[].model` and for a model named in `orchestrate.instructions`.
 
 "Agent" below means a subagent or a Herdr agent, whichever the role got.
+
+Herdr run dir (`R` in `herdr-fleet`) is always `tasks/<slug>/orchestrate/`, one for the whole task. It holds prompts, reports, screenshots and secrets, so it must be in `.gitignore` (`tasks/*/orchestrate/`). If it is not, add that line before the first launch. Never commit it.
+
+### Extra agents
+
+`orchestrate.agents` lists project agents on top of the loop. For each entry, start a new agent on its `model` when its `when` says, and give it its `instructions`
 
 ### Fresh context
 
@@ -42,7 +48,7 @@ Each phase of each step gets a new agent. Keep the implementer only until its Fi
 1. Read `tasks/<slug>/feature.json` (including relatedSources) and `tasks/<slug>/progress.txt`
 2. While any user step has `passes: false`, run **Plan → Implement → Review → Fix** for the highest-priority pending step (`passes: false`, lowest `priority` number).
 Same 3 phases for every step in feature.json (if user didn't specify smth different)
-
+The next step starts only after that gate passes, including its Plan phase: steps run strictly one after another, so never plan the next step in parallel with the current one.
 ### Plan (agent)
 
 Agent should use skill `feature-json-create-step-plan`. Plan should be written to `tasks/<slug>/plans/<step-id>.md`.
@@ -51,12 +57,12 @@ Agent should use skill `feature-json-create-step-plan`. Plan should be written t
 
 Agent should use skill `feature-json-implement-step`. Pass the step id and the plan path `tasks/<slug>/plans/<step-id>.md`. Save the subagent id (`resume` id).
 
-### Review (two agents, in parallel)
+### Review (agents in parallel)
 
-Spawn both at once
+Spawn all at once
 
-- `feature-json-step-review`
-- `feature-json-no-comments-review`
+- `feature-json-step-review` on `review.model`
+- `feature-json-no-comments-review` on `noCommentsReview.model`
 
 ### Fix
 

@@ -71,6 +71,7 @@ npx skills update
 | ------------------------------ | ------------------------------------------------------------ |
 | `tasks/<slug>/`                | One task: `feature.json`, `progress.txt`, `plans/`, … Done tasks stay here |
 | `.feature-json.config.json`     | Optional project config, see [Project config](#project-config) |
+| `tasks/<slug>/orchestrate/`    | Herdr run dir of `feature-json-orchestrate`: prompts, reports, screenshots, secrets. Add `tasks/*/orchestrate/` to `.gitignore` |
 
 ## Attribution
 

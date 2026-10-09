@@ -62,7 +62,7 @@ npx skills add Dimabytes/feature-json --skill '*'
 Update later:
 
 ```bash
-npx skills update
+npx skills update -g
 ```
 
 ## Folder convention

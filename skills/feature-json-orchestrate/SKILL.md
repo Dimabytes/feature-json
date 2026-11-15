@@ -33,7 +33,7 @@ Use the same rules for `orchestrate.agents[].model` and for a model named in `or
 
 "Agent" below means a subagent or a Herdr agent, whichever the role got.
 
-Herdr run dir (`R` in `herdr-fleet`) is always `tasks/<slug>/orchestrate/`, one for the whole task. It holds prompts, reports, screenshots and secrets, so it must be in `.gitignore` (`tasks/*/orchestrate/`). If it is not, add that line before the first launch. Never commit it.
+Herdr run dir (`R` in `herdr-fleet`) is always `tasks/<slug>/orchestrate/`, one for the whole task. It holds prompts, reports, screenshots and secrets. The whole `tasks/` folder is in `.gitignore`. Before the first launch, check it with `git check-ignore -q tasks/<slug>/orchestrate/`; if it is not ignored, add `tasks/` to `.gitignore`. Never commit it.
 
 ### Extra agents
 

@@ -36,7 +36,7 @@ If `.feature-json.config.json` exists in the repo root, follow every line in `in
       {
          "id": "STEP-001",
          "title": "Add status field to tasks table",
-         "description": "As a developer, I need to store task status in the database so that other features can read and write status.",
+         "description": "Add a status column to the tasks table. Later steps read and write it.",
          "changes": [
             "Add status column: 'pending' | 'in_progress' | 'done' (default 'pending')",
             "Generate and run migration successfully",
@@ -52,7 +52,7 @@ If `.feature-json.config.json` exists in the repo root, follow every line in `in
       {
          "id": "STEP-002",
          "title": "Display status badge on task cards",
-         "description": "As a user, I want to see task status at a glance so that I know which tasks need attention.",
+         "description": "Show the status of each task as a colored badge on its card.",
          "changes": [
             "Each task card shows a colored status badge",
             "Badge colors: gray=pending, blue=in_progress, green=done",
@@ -67,7 +67,7 @@ If `.feature-json.config.json` exists in the repo root, follow every line in `in
       {
          "id": "STEP-003",
          "title": "Add status toggle to task list rows",
-         "description": "As a user, I want to change task status directly from the list so that I can update progress quickly.",
+         "description": "Let the user change the status of a task from its row in the list.",
          "changes": [
             "Each row has a status dropdown or toggle",
             "Changing status saves immediately via server action",
@@ -83,7 +83,7 @@ If `.feature-json.config.json` exists in the repo root, follow every line in `in
       {
          "id": "STEP-004",
          "title": "Filter tasks by status",
-         "description": "As a user, I want to filter the list to see only certain statuses so that I can focus on relevant tasks.",
+         "description": "Add a status filter to the task list.",
          "changes": [
             "Filter dropdown has options: All, Pending, In Progress, Done",
             "Filter persists in URL params",
@@ -102,6 +102,15 @@ If `.feature-json.config.json` exists in the repo root, follow every line in `in
 In `designReference`, add Figma link or path to images.
 
 `ticket` is the tracker key (Jira, Linear, etc.). Leave it `""` — the user fills it in later. Do not invent a key.
+
+`description` is plain prose, 1–3 sentences: what the step does and why. A reader learns from it what the step is about.
+
+### Optional step fields
+
+Add them only when the task needs them.
+
+- `"manual": true` — a person does the step: a sign-off, a deploy, a check only the user can run. `changes` lists what the person does and how to tell it is done, with no verification entries. The orchestrator shows the step and waits for the user.
+- `"dependsOn": ["STEP-003"]` — the steps that must pass before this step starts. Add it when some steps can run at the same time. Every step in `dependsOn` has a lower `priority` than this step. A step without `dependsOn` waits for every step with a lower `priority`.
 
 ---
 
@@ -207,7 +216,7 @@ Frontend steps are NOT complete until visually verified.
 
 ## Conversion Rules
 
-1. **Each user step becomes one JSON entry**
+1. **Each step becomes one JSON entry**
 2. **IDs**: Sequential (STEP-001, STEP-002, etc.)
 3. **Priority**: Based on dependency order, then document order
 4. **All steps**: `passes: false`

@@ -28,7 +28,6 @@ description: Create or change .feature-json.config.json in the project root — 
     ]
   },
   "plan": {
-    "model": "grok-4.7-high",
     "instructions": []
   },
   "implement": {
@@ -41,10 +40,6 @@ description: Create or change .feature-json.config.json in the project root — 
   "review": {
     "model": "grok-4.7-high",
     "instructions": []
-  },
-  "noCommentsReview": {
-    "model": "composer-2.5",
-    "instructions": []
   }
 }
 ```
@@ -54,7 +49,7 @@ Every field is optional. No file → the default loop on the current model.
 | Field          | In                      | Meaning                                                                                         | Read by                    |
 | -------------- | ----------------------- | ----------------------------------------------------------------------------------------------- | -------------------------- |
 | `instructions` | every section           | extra rules for that phase, one line each. To use a skill, write "Read skill `x` and follow it." | the skill of that phase    |
-| `model`        | plan, implement, review, noCommentsReview | model id or herdr-fleet agent name for that role. No field → current model      | `feature-json-orchestrate` |
+| `model`        | implement, review       | model id or herdr-fleet agent name for that role. No field → current model      | `feature-json-orchestrate` |
 | `agents`       | orchestrate             | extra project agents. Each: `name`, `when` (phase or condition to run), `model`, `instructions` | `feature-json-orchestrate` |
 
 Section → skill that reads its `instructions`:
@@ -63,10 +58,9 @@ Section → skill that reads its `instructions`:
 | ------------- | ---------------------------------------------------------------------- |
 | `init`        | `feature-json-init`                                                    |
 | `orchestrate` | `feature-json-orchestrate`                                             |
-| `plan`        | `feature-json-create-step-plan`, `feature-json-manual-create-step-plan` |
+| `plan`        | `feature-json-manual-create-step-plan`                                 |
 | `implement`   | `feature-json-implement-step`                                          |
 | `review`      | `feature-json-step-review`                                             |
-| `noCommentsReview` | `feature-json-no-comments-review`                                 |
 
 An extra review pass (or any extra agent) is an entry in `orchestrate.agents`, because orchestrate starts the agents.
 
@@ -79,7 +73,7 @@ How orchestrate runs a `model` (own subagent, Herdr agent, or stop) is in `featu
    - Models: the current model. If `.herdr-fleet.config.json` exists in the repo root, every `model` in it, with its agent name and `notes`.
    - Project skills: skill folders in `.claude/skills/`, `.cursor/skills/`, `.agents/skills/`, `.shared-skills/`. Offer review skills as extra review passes in `orchestrate.agents`, other skills as instructions for their phase.
 3. Ask the user with the platform question tool (Cursor: `AskQuestion`, Claude Code: `AskUserQuestion`):
-   - model for plan, implement, review, noCommentsReview;
+   - model for implement, review;
    - extra agents (review passes and others): when they run, model, instructions;
    - extra rules per phase (free text).
 

@@ -1,6 +1,6 @@
 ---
 name: feature-json-implement-step
-description: Implements a specific user step from feature.json. Requires the exact step number and an execution plan as input. Reads the PRD, feature spec, and progress log, then implements, tests, commits, and logs progress. This skill must only be invoked manually by the user — never auto-triggered by other skills or agents.
+description: Implements a specific step from feature.json. Requires the exact step id; an execution plan is optional. Reads the feature spec and progress log, plans the step itself when no plan is given, then implements, tests, commits, and logs progress. This skill must only be invoked manually by the user — never auto-triggered by other skills or agents.
 ---
 
 ## Your Task
@@ -11,11 +11,12 @@ Task folder `tasks/<slug>/`: the slug you were given.
 
 1. Read `tasks/<slug>/feature.json` (including relatedSources) and `tasks/<slug>/progress.txt`
 2. Pick step(s) specified by user. Work only on those steps.
-3. Implement those user steps.
-4. Run the project's appropriate type check and linter check commands.
-5. Update the PRD to set `passes: true` for the completed step
-6. Append your progress to `tasks/<slug>/progress.txt`
-7. Commit the changes. When the project has no convention, use message: `feat: [step ID] - [step Title]`.
+3. If you got a plan, follow it. Otherwise plan the step yourself before writing code: read the code it touches and the `relatedSources` it needs, think through edge cases and tradeoffs, and pick the checks from its `changes`. Keep this plan in your context, not in a file.
+4. Implement those steps.
+5. Run the project's appropriate type check and linter check commands.
+6. Update `feature.json` to set `passes: true` for the completed step
+7. Append your progress to `tasks/<slug>/progress.txt`
+8. Commit the changes. When the project has no convention, use message: `feat: [step ID] - [step Title]`.
 
 Progress Report Format
 APPEND to progress.txt (never replace, always append, create file if missing):

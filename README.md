@@ -5,7 +5,7 @@ Complete stack to do work with complex, multistep tasks that don't fit in one co
 When AI agent work on complex task that produce thousands lines of code it will have fewer bugs and produce much better code
 if you split the task into steps and plan, implement and review each step individually.
 
-Turn a task into `feature.json`, then plan → implement → step-review until every user story passes.
+Turn a task into `feature.json`, then implement → step-review each step until every step passes.
 
 ## How to use this
 
@@ -20,11 +20,18 @@ To do it you just run for each step
 2. /feature-json-implement-step and pass the file you generated on previous step
 3. /feature-json-step-review (and tell it what to review)
 
-If you want to automate this loop you can just run /feature-json-orchestrate. It will do same steps.
+If you want to automate this loop you can just run /feature-json-orchestrate. It runs implement → review → fix for each step. The implementer plans the step itself, without a plan file.
 
 ## What is `feature.json`
 
 It's a file where you have all your steps described.
+
+Two optional step fields:
+
+- `"manual": true` — a person does the step: a sign-off, a deploy. `/feature-json-orchestrate` shows the step and waits for you.
+- `"dependsOn": ["STEP-003"]` — the step starts after these steps pass. A step without it waits for every step with a lower `priority`.
+
+By default orchestrate runs one step at a time in `priority` order. Ask it to run steps in parallel, and it starts every step whose dependencies passed.
 
 ## Project config
 
@@ -40,7 +47,7 @@ A model that the current harness cannot run (e.g. Devin from Claude Code) needs 
 | ------------------------------- |-----------------------------------------------------------|
 | `feature-json-config`           | Create or change `.feature-json.config.json` (once per project) |
 | `feature-json-init`             | Create `tasks/<slug>/feature.json`                        |
-| `feature-json-create-step-plan` | Plan the next step                                        |
+| `feature-json-manual-create-step-plan` | Plan the next step with an interview                |
 | `feature-json-implement-step`   | Implement step                                            |
 | `feature-json-step-review`      | Strict maintainability review                             |
 | `feature-json-orchestrate`      | Run the loop until every step passes                      |

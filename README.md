@@ -26,12 +26,13 @@ If you want to automate this loop you can just run /feature-json-orchestrate. It
 
 It's a file where you have all your steps described.
 
-Two optional step fields:
+Optional step fields:
 
 - `"manual": true` — a person does the step: a sign-off, a deploy. `/feature-json-orchestrate` shows the step and waits for you.
-- `"dependsOn": ["STEP-003"]` — the step starts after these steps pass. A step without it waits for every step with a lower `priority`.
+- `"dependsOn": ["STEP-003"]` — **when** the step can start: after these steps pass. `[]` means it can start at once. If one step has `dependsOn`, every step has it.
+- `"track": "api"` — **where** the step works. A track is one working copy with its own branch, for example a git worktree. Steps of one track never run at the same time. The top-level `"tracks"` says where each track works.
 
-By default orchestrate runs one step at a time in `priority` order. Ask it to run steps in parallel, and it starts every step whose dependencies passed.
+By default orchestrate runs one step at a time in `priority` order. Ask it to run steps in parallel, and it starts every step whose dependencies passed and whose track is free. The full rules are in [`skills/feature-json-init/SKILL.md`](skills/feature-json-init/SKILL.md) → "Parallel steps".
 
 ## Project config
 

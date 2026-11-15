@@ -74,18 +74,43 @@ A step with `manual: true` is done by the user. It skips Plan, Implement, Review
 
 ## Parallel mode
 
-Run it only when the user asks for it. Otherwise run the [Loop](#loop).
+Run it only when the user asks for it. Otherwise run the [Loop](#loop). The Loop ignores `dependsOn` and `track`: every step works in the main checkout.
 
-A pending step is **ready** when every step in its `dependsOn` has `passes: true`. A step without `dependsOn` is ready when every step with a lower `priority` has `passes: true`. A step counts as passed only after its Fix ends: the `passes: true` that the implementer sets before review does not count.
+The format of `dependsOn`, `track` and `tracks` is in skill `feature-json-init` → "Parallel steps".
 
-1. Start every ready step. Each one runs Implement → Review → Fix, or Manual, as in the Loop.
+Before the first step, check the file:
+
+- every step has `dependsOn`;
+- every id in a `dependsOn` exists and has a lower `priority`;
+- every `track` is a key of `tracks`.
+
+If a check fails, stop and tell the user what to fix. If no step has `dependsOn`, the file is sequential: tell the user and run the Loop.
+
+A pending step is **ready** when both are true:
+
+- every step in its `dependsOn` has `passes: true`. A step with `"dependsOn": []` depends on nothing;
+- no other step of its `track` is running.
+
+A step counts as passed only after its Fix ends: the `passes: true` that the implementer sets before review does not count.
+
+1. Start every ready step. If several ready steps share a track, start the one with the lowest `priority`. Each step runs Implement → Review → Fix, or Manual, as in the Loop.
 2. When a step passes, find the steps that became ready and start them. A manual step that waits for the user holds back only the steps that depend on it.
 3. Stop when every step passes.
 
-Each step writes its code where the project rules and the task's `relatedSources` say.
+### Where a step works
+
+- A step with a `track` works in the working copy that `tracks` names. Before the first step of a track, create this working copy by the project rules. Give its path to the implementer and to the reviewers of every step of the track.
+- A step without a `track` works in the main checkout. Ready steps without a track run there at the same time.
+
+When a track has its own branch:
+
+- Before a step of the track starts, merge the base branch into the track branch.
+- After a step of the track passes, merge the track branch into the base branch. Then run the project's tests on the base branch. If the merge has conflicts or the tests fail, resume the implementer of that step to fix it.
+- Do this merge before you start the steps that became ready.
 
 Tell every implementer:
 
+- the path of its working copy, and to work only there;
 - other agents work on other steps at the same time;
 - `feature.json`, `progress.txt` and the repo can change under them;
 - re-read a file right before editing it, change only the lines of their own step, and keep the changes of other agents;

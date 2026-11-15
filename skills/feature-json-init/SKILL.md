@@ -110,7 +110,48 @@ In `designReference`, add Figma link or path to images.
 Add them only when the task needs them.
 
 - `"manual": true` — a person does the step: a sign-off, a deploy, a check only the user can run. `changes` lists what the person does and how to tell it is done, with no verification entries. The orchestrator shows the step and waits for the user.
-- `"dependsOn": ["STEP-003"]` — the steps that must pass before this step starts. Add it when some steps can run at the same time. Every step in `dependsOn` has a lower `priority` than this step. A step without `dependsOn` waits for every step with a lower `priority`.
+- `"dependsOn"`, `"track"` and the top-level `"tracks"` — only when some steps can run at the same time. See [Parallel steps](#parallel-steps).
+
+### Parallel steps
+
+By default a feature.json is sequential: no step has `dependsOn` or `track`, and the steps run in `priority` order.
+
+When some steps can run at the same time, describe it with two fields. `dependsOn` says **when** a step can start. `track` says **where** it works.
+
+```json
+{
+   "tracks": {
+      "api": "worktree ../app-api, branch feature-api",
+      "ui": "worktree ../app-ui, branch feature-ui"
+   },
+   "steps": [
+      { "id": "STEP-001", "priority": 1, "dependsOn": [] },
+      { "id": "STEP-002", "priority": 2, "track": "api", "dependsOn": ["STEP-001"] },
+      { "id": "STEP-003", "priority": 3, "track": "api", "dependsOn": ["STEP-002"] },
+      { "id": "STEP-004", "priority": 4, "track": "ui", "dependsOn": ["STEP-001"] },
+      { "id": "STEP-005", "priority": 5, "dependsOn": ["STEP-003", "STEP-004"] }
+   ]
+}
+```
+
+The example shows only the fields of this section. STEP-002 and STEP-004 start together after STEP-001. STEP-005 waits for both tracks.
+
+`dependsOn`:
+
+- If one step has `dependsOn`, every step has it. Never mix steps with and without it.
+- It lists the steps that must pass before this step starts.
+- `[]` means the step depends on nothing. It can start at once.
+- Every step in `dependsOn` has a lower `priority` than this step.
+- The order comes only from `dependsOn`. A track never sets the order.
+
+`track`:
+
+- A track is one working copy with its own branch, for example a git worktree. Steps of the same track never run at the same time. Steps of different tracks can.
+- `tracks` at the top level has one entry per track: its name and one line that says where it works.
+- Every `track` of a step is a key of `tracks`.
+- A step without `track` works in the main checkout. Steps without a track can run there at the same time.
+- A `manual` step has no `track`.
+- Give two steps different tracks when they can run at the same time and edit the same files.
 
 ---
 

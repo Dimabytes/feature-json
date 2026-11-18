@@ -104,7 +104,7 @@ When every check of the step is green, set `passes: true` and continue to the ne
 
 ### Group review
 
-A step with `reviewOf` is a review of several steps together. The format is in skill `feature-json-init` → "Group review steps". It skips Implement.
+A step with `reviewOf` is a review of several steps together. Its id is `REVIEW-001`, `REVIEW-002` and so on, not `STEP-…`. The format is in skill `feature-json-init` → "Group review steps". It skips Implement.
 
 1. **Review.** Start a new agent on `groupReview.model`; with no such field, on `review.model`. Start the extra agents whose `when` names the group review. Give each reviewer:
    - the step: its `reviewOf`, `description` and `changes`;
@@ -135,7 +135,8 @@ Before the first step, check the file:
 - every step has `dependsOn`;
 - every id in a `dependsOn` exists and has a lower `priority`;
 - every `track` is a key of `tracks`;
-- every id in a `reviewOf` exists and is in the `dependsOn` of that step.
+- every id in a `reviewOf` exists and is in the `dependsOn` of that step;
+- a step has a `REVIEW-` id exactly when it has `reviewOf`.
 
 If a check fails, stop and tell the user what to fix. If no step has `dependsOn`, the file is sequential: tell the user and run the Loop.
 

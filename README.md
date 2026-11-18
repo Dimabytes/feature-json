@@ -32,7 +32,7 @@ Optional step fields:
 - `"dependsOn": ["STEP-003"]` — **when** the step can start: after these steps pass. `[]` means it can start at once. If one step has `dependsOn`, every step has it.
 - `"track": "api"` — **where** the step works. A track is one working copy with its own branch, for example a git worktree. Steps of one track never run at the same time. The top-level `"tracks"` says where each track works.
 - `"skipReview": true` — a small simple step: `/feature-json-orchestrate` runs no code review for it. Its checks still run.
-- `"reviewOf": ["STEP-004", "STEP-005"]` — the step is a group review: one review of several connected steps together, after all of them pass. It looks at how the steps fit together, which a one-step review cannot see. Later steps wait for it.
+- `"reviewOf": ["STEP-004", "STEP-005"]` — the entry is a group review with the id `REVIEW-001`, not `STEP-…`: one review of several connected steps together, after all of them pass. It looks at how the steps fit together, which a one-step review cannot see. Later steps wait for it.
 - `"cancelled": true` — the step was dropped after the task started. `/feature-json-orchestrate` skips it, and steps that depend on it can start.
 
 By default orchestrate runs one step at a time in `priority` order. Ask it to run steps in parallel, and it starts every step whose dependencies passed and whose track is free. The full rules are in [`skills/feature-json-init/SKILL.md`](skills/feature-json-init/SKILL.md) → "Parallel steps".

@@ -12,7 +12,7 @@ Task folder `tasks/<slug>/`: the slug you were given.
 1. Read `tasks/<slug>/feature.json` (including relatedSources) and `tasks/<slug>/progress.txt`
 2. Pick step(s) specified by user. Work only on those steps.
 3. If you got a plan, follow it. Otherwise plan the step yourself before writing code: read the code it touches and the `relatedSources` it needs, think through edge cases and tradeoffs, and pick the checks from its `changes`. Keep this plan in your context, not in a file.
-   A step with `reviewOf` is a group review step. You get the review findings instead of a plan: fix them in the code of the steps it lists.
+   A step with `reviewOf` (id `REVIEW-…`) is a group review step. You get the review findings instead of a plan: fix them in the code of the steps it lists.
 4. Implement those steps.
 5. Run the project's appropriate type check and linter check commands.
 6. Update `feature.json` to set `passes: true` for the completed step. Skip this when an orchestrator runs you (see below).

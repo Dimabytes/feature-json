@@ -112,7 +112,7 @@ Add them only when the task needs them.
 - `"manual": true` — a person does the step: a sign-off, a deploy, a check only the user can run. `changes` lists what the person does and how to tell it is done, with no verification entries. The orchestrator shows the step and waits for the user.
 - `"dependsOn"`, `"track"` and the top-level `"tracks"` — only when some steps can run at the same time. See [Parallel steps](#parallel-steps).
 - `"skipReview": true` — the orchestrator runs no code review for the step. Use it for a small simple step with little or no logic to review: a rename, a config value, a file move, a command to run. The checks in `changes` still run. Set it only when the user asks for it or agrees to it. A `manual` step needs no flag: it has no review.
-- `"reviewOf": ["STEP-004", "STEP-005"]` — the step is a review of several steps together. See [Group review steps](#group-review-steps).
+- `"reviewOf": ["STEP-004", "STEP-005"]` — the entry is a review of several steps together, not a step of work. Its `id` is `REVIEW-001`, not `STEP-…`. See [Group review steps](#group-review-steps).
 - `"cancelled": true` — the step was dropped after the task started. Do not delete it: keep the step and add one line to its `description` that says who cancelled it, when and why. The orchestrator never runs it, and in a `dependsOn` it counts as passed. A new feature.json has no cancelled steps.
 
 ### Parallel steps
@@ -168,11 +168,11 @@ It looks for what a one-step review cannot see:
 - code that a later step made dead or duplicate;
 - whether the steps work together.
 
-A group review is a step with `reviewOf`:
+A group review is an entry of `steps` with `reviewOf` and a `REVIEW-` id:
 
 ```json
 {
-   "id": "STEP-007",
+   "id": "REVIEW-001",
    "title": "Review of the import pipeline (STEP-004–006)",
    "description": "STEP-004–006 build the import pipeline. The export steps build on it next, so the three steps are checked together first.",
    "reviewOf": ["STEP-004", "STEP-005", "STEP-006"],
@@ -188,10 +188,11 @@ A group review is a step with `reviewOf`:
 }
 ```
 
+- Its `id` is `REVIEW-001`, `REVIEW-002` and so on. Reviews are numbered apart from steps, in `priority` order, and `STEP-` numbers skip no number for a review: in the example the next step is `STEP-007` with `priority` 8. An entry has a `REVIEW-` id exactly when it has `reviewOf`.
 - `reviewOf` lists the steps of the group. Each has a lower `priority` than the review step.
 - `changes` lists what the review must check: one entry per joint or risk of the group. It plans no code. Code changes come from the findings.
 - Put the review step right after the last step of its group.
-- In a parallel file, its `dependsOn` holds every step of `reviewOf`. A step that builds on the group depends on the review step, not on the steps of the group. This is what makes later work wait for the review.
+- In a parallel file, its `dependsOn` holds every step of `reviewOf`. A step that builds on the group depends on the review step (`"dependsOn": ["REVIEW-001"]`), not on the steps of the group. This is what makes later work wait for the review.
 - A review step has `track` when its fixes belong to one track.
 - Do not add a group review for one step: the step review covers it.
 
@@ -304,7 +305,7 @@ Frontend steps are NOT complete until visually verified.
 ## Conversion Rules
 
 1. **Each step becomes one JSON entry**
-2. **IDs**: Sequential (STEP-001, STEP-002, etc.)
+2. **IDs**: Sequential (STEP-001, STEP-002, etc.). Group reviews have their own sequence: REVIEW-001, REVIEW-002, etc.
 3. **Priority**: Based on dependency order, then document order
 4. **All steps**: `passes: false`
 ---

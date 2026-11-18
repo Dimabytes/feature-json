@@ -20,7 +20,7 @@ To do it you just run for each step
 2. /feature-json-implement-step and pass the file you generated on previous step
 3. /feature-json-step-review (and tell it what to review)
 
-If you want to automate this loop you can just run /feature-json-orchestrate. It runs implement → review → fix for each step. The implementer plans the step itself, without a plan file.
+If you want to automate this loop you can just run /feature-json-orchestrate. It runs implement → review → fix → long checks for each step. The implementer plans the step itself, without a plan file. Checks that take more than about 15 minutes run once, after the review and the fix.
 
 ## What is `feature.json`
 
@@ -31,6 +31,9 @@ Optional step fields:
 - `"manual": true` — a person does the step: a sign-off, a deploy. `/feature-json-orchestrate` shows the step and waits for you.
 - `"dependsOn": ["STEP-003"]` — **when** the step can start: after these steps pass. `[]` means it can start at once. If one step has `dependsOn`, every step has it.
 - `"track": "api"` — **where** the step works. A track is one working copy with its own branch, for example a git worktree. Steps of one track never run at the same time. The top-level `"tracks"` says where each track works.
+- `"skipReview": true` — a small simple step: `/feature-json-orchestrate` runs no code review for it. Its checks still run.
+- `"reviewOf": ["STEP-004", "STEP-005"]` — the step is a group review: one review of several connected steps together, after all of them pass. It looks at how the steps fit together, which a one-step review cannot see. Later steps wait for it.
+- `"cancelled": true` — the step was dropped after the task started. `/feature-json-orchestrate` skips it, and steps that depend on it can start.
 
 By default orchestrate runs one step at a time in `priority` order. Ask it to run steps in parallel, and it starts every step whose dependencies passed and whose track is free. The full rules are in [`skills/feature-json-init/SKILL.md`](skills/feature-json-init/SKILL.md) → "Parallel steps".
 

@@ -111,6 +111,9 @@ Add them only when the task needs them.
 
 - `"manual": true` — a person does the step: a sign-off, a deploy, a check only the user can run. `changes` lists what the person does and how to tell it is done, with no verification entries. The orchestrator shows the step and waits for the user.
 - `"dependsOn"`, `"track"` and the top-level `"tracks"` — only when some steps can run at the same time. See [Parallel steps](#parallel-steps).
+- `"skipReview": true` — the orchestrator runs no code review for the step. Use it for a small simple step with little or no logic to review: a rename, a config value, a file move, a command to run. The checks in `changes` still run. Set it only when the user asks for it or agrees to it. A `manual` step needs no flag: it has no review.
+- `"reviewOf": ["STEP-004", "STEP-005"]` — the step is a review of several steps together. See [Group review steps](#group-review-steps).
+- `"cancelled": true` — the step was dropped after the task started. Do not delete it: keep the step and add one line to its `description` that says who cancelled it, when and why. The orchestrator never runs it, and in a `dependsOn` it counts as passed. A new feature.json has no cancelled steps.
 
 ### Parallel steps
 
@@ -153,6 +156,47 @@ The example shows only the fields of this section. STEP-002 and STEP-004 start t
 - A `manual` step has no `track`.
 - Give two steps different tracks when they can run at the same time and edit the same files.
 
+### Group review steps
+
+A step review reads one step. A group review reads several connected steps together, after all of them pass: a phase of the task, a track before other work builds on it, the steps before a gate or a switch.
+
+It looks for what a one-step review cannot see:
+
+- two steps that contradict each other;
+- a contract between steps that nobody owns: a type, a file format, a command;
+- a check that passes for the wrong reason;
+- code that a later step made dead or duplicate;
+- whether the steps work together.
+
+A group review is a step with `reviewOf`:
+
+```json
+{
+   "id": "STEP-007",
+   "title": "Review of the import pipeline (STEP-004–006)",
+   "description": "STEP-004–006 build the import pipeline. The export steps build on it next, so the three steps are checked together first.",
+   "reviewOf": ["STEP-004", "STEP-005", "STEP-006"],
+   "changes": [
+      "The parser of STEP-004 and the writer of STEP-006 use one definition of the row format",
+      "Every error that STEP-005 can raise reaches the report of STEP-006",
+      "Tests pass"
+   ],
+   "priority": 7,
+   "passes": false,
+   "ticket": "",
+   "designReference": []
+}
+```
+
+- `reviewOf` lists the steps of the group. Each has a lower `priority` than the review step.
+- `changes` lists what the review must check: one entry per joint or risk of the group. It plans no code. Code changes come from the findings.
+- Put the review step right after the last step of its group.
+- In a parallel file, its `dependsOn` holds every step of `reviewOf`. A step that builds on the group depends on the review step, not on the steps of the group. This is what makes later work wait for the review.
+- A review step has `track` when its fixes belong to one track.
+- Do not add a group review for one step: the step review covers it.
+
+Add group reviews where the user's plan names review phases. If the plan names none and the task has more than about 8 steps, ask the user whether to add one at the end of each phase.
+
 ---
 
 ## Step Size: The Number One Rule
@@ -171,6 +215,8 @@ The example shows only the fields of this section. STEP-002 and STEP-004 start t
 - "Refactor the API" - Split into one step per endpoint or pattern
 
 **Rule of thumb:** If you cannot describe the change in 2-3 sentences, it is too big.
+
+**Size limit:** a step writes about 1000 meaningful lines of code at most. Tests, generated files and moved code count less than new logic, so this is an estimate, not an exact count. If a step needs clearly more, split it.
 
 ---
 

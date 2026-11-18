@@ -12,9 +12,10 @@ Task folder `tasks/<slug>/`: the slug you were given.
 1. Read `tasks/<slug>/feature.json` (including relatedSources) and `tasks/<slug>/progress.txt`
 2. Pick step(s) specified by user. Work only on those steps.
 3. If you got a plan, follow it. Otherwise plan the step yourself before writing code: read the code it touches and the `relatedSources` it needs, think through edge cases and tradeoffs, and pick the checks from its `changes`. Keep this plan in your context, not in a file.
+   A step with `reviewOf` is a group review step. You get the review findings instead of a plan: fix them in the code of the steps it lists.
 4. Implement those steps.
 5. Run the project's appropriate type check and linter check commands.
-6. Update `feature.json` to set `passes: true` for the completed step
+6. Update `feature.json` to set `passes: true` for the completed step. Skip this when an orchestrator runs you (see below).
 7. Append your progress to `tasks/<slug>/progress.txt`
 8. Commit the changes. When the project has no convention, use message: `feat: [step ID] - [step Title]`.
 
@@ -42,6 +43,12 @@ Keep is short. Small sentences. Bullet points.
 - By default use the current feature branch.
 
 ## If you are running as subagent
+
+When an orchestrator runs you:
+
+- Do not set `passes`. The orchestrator sets it after review, Fix and the long checks.
+- Before you report, run only the quick checks: lint, typecheck, unit tests.
+- Do not start a check that takes more than about 15 minutes (a full replay, a backtest, a full parity gate), even when the step lists it. The orchestrator asks for it after the review.
 
 If the parent resumes you with review findings: fix it. Don't be lazy, but sometimes reviewer can do mistakes.
 Sometimes reviewer can mark things as NIT when it's actually not NIT. Sometimes vise versa.

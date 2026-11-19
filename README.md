@@ -41,7 +41,11 @@ By default orchestrate runs one step at a time in `priority` order. Ask it to ru
 
 **https://dimabytes.github.io/feature-json/** — read a `feature.json` in the browser instead of the raw JSON.
 
-- Drop the file on the page or click **Open…**. The file stays in your browser and is never uploaded.
+- Drop the file or its task folder on the page, or click **Open…**. The file stays in your browser and is never uploaded.
+- Or press ⌘V on the page with:
+  - a path to the file or its folder (⌥⌘C in Finder copies it). A browser cannot open a path by itself, so the page opens the file dialog: press ⌘⇧G, ⌘V, Enter there;
+  - the file copied in Finder;
+  - the JSON itself.
 - **Steps**: every step with its status (passed, ready to start, blocked, cancelled), filters by status and track, search, and a card with `changes`, `dependsOn`, the steps it blocks and its reviews. Keys `j` / `k` move between steps.
 - **Graph**: one lane per track, columns by dependency depth. Hover a step to trace its chain, click to open it.
 - Requirements, resolved questions, non-goals, sources and tracks get their own tabs, and so does any other top-level key.

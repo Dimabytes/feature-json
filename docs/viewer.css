@@ -397,6 +397,10 @@ select {
    font-size: 13px;
 }
 
+.banner.info {
+   background: var(--accent-tint);
+}
+
 .banner > div {
    max-width: 1288px;
    margin: 0 auto;
@@ -1307,6 +1311,22 @@ select {
    flex-wrap: wrap;
    gap: 8px;
    margin: 0 0 16px;
+}
+
+.paste-hint {
+   color: var(--text-2);
+   margin: 0 auto 10px;
+   max-width: 56ch;
+}
+
+kbd {
+   font: 600 12px var(--mono);
+   padding: 1px 6px;
+   border: 1px solid var(--border-strong);
+   border-bottom-width: 2px;
+   border-radius: 5px;
+   background: var(--surface);
+   white-space: nowrap;
 }
 
 .dropzone .muted {

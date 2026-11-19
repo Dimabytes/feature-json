@@ -231,7 +231,7 @@ export function recentListHtml(recent) {
       .map((r) => `<li>
          <button class="recent-item" data-recent="${esc(r.id)}">
             <span class="ri-name">${esc(r.project || r.fileName)}</span>
-            <span class="ri-meta">${esc(r.fileName)} · ${r.stepsPassed}/${r.stepsTotal} passed · ${ago(r.openedAt)}</span>
+            <span class="ri-meta">${esc(r.folder ? `${r.folder}/${r.fileName}` : r.fileName)} · ${r.stepsPassed}/${r.stepsTotal} passed · ${ago(r.openedAt)}</span>
             ${r.description ? `<span class="ri-desc">${esc(truncate(plain(r.description), 160))}</span>` : ''}
          </button>
          <button class="icon-btn" data-forget="${esc(r.id)}" title="Remove from recent" aria-label="Remove ${esc(r.project || r.fileName)} from recent">×</button>
@@ -239,12 +239,14 @@ export function recentListHtml(recent) {
       .join('')}</ul>`;
 }
 
-export function startHtml(recent, canWatch) {
+export function startHtml(recent, canWatch, isMac) {
+   const paste = isMac ? '⌘V' : 'Ctrl+V';
    return `<section class="start">
       <div class="dropzone">
          <div class="dz-mark" aria-hidden="true">{ }</div>
-         <h1>Drop a <code>feature.json</code> here</h1>
+         <h1>Drop a <code>feature.json</code> or its task folder here</h1>
          <p class="dz-actions"><button class="btn primary" data-action="open">Choose a file</button><button class="btn ghost" data-action="demo">Open the demo</button></p>
+         <p class="paste-hint">Or press <kbd>${paste}</kbd> with a path to the file or its folder${isMac ? ' (<kbd>⌥⌘C</kbd> in Finder)' : ''}, the file copied in ${isMac ? 'Finder' : 'your file manager'}, or its JSON.</p>
          <p class="muted small">The file is read in your browser and never uploaded.
          ${canWatch ? 'The page redraws itself when the file changes on disk.' : 'Live reload needs Chrome, Edge, Arc or Brave. In this browser drop the file again after a change.'}</p>
       </div>

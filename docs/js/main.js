@@ -1,8 +1,10 @@
 import { centerOn, markSelected, mountGraph } from './graph.js';
 import { buildModel } from './model.js';
 import * as view from './render.js';
-import { canWatch, ensurePermission, forgetRecent, listRecent, pickFile, rememberRecent, takeDrop, Watcher } from './source.js';
-import { esc } from './text.js';
+import {
+   canWatch, ensurePermission, forgetRecent, isFolderPath, listRecent, pickFile, pickFolder, rememberRecent, takeDrop, takePaste, Watcher,
+} from './source.js';
+import { esc, truncate } from './text.js';
 
 const $ = (sel) => document.querySelector(sel);
 const el = {
@@ -21,6 +23,7 @@ const el = {
 const THEMES = ['system', 'light', 'dark'];
 const THEME_ICON = { system: '◐', light: '☀︎', dark: '☾' };
 const DEFAULT_FILTER = () => ({ status: 'all', track: '*', q: '' });
+const IS_MAC = /Mac/i.test(navigator.userAgentData?.platform ?? navigator.platform ?? '');
 
 const state = {
    source: null,
@@ -28,6 +31,8 @@ const state = {
    updatedAt: null,
    parseError: null,
    fileError: null,
+   openError: null,
+   notice: null,
    recent: [],
    tab: 'steps',
    stepId: null,
@@ -79,6 +84,7 @@ function applyText(text, { name, modified }) {
 function remember(handle, model, fileName) {
    const meta = {
       fileName,
+      folder: state.source.folder ?? '',
       project: model.project,
       description: model.description,
       stepsTotal: model.counts.total - model.counts.cancelled,
@@ -103,6 +109,8 @@ function beginSource(source) {
       updatedAt: null,
       parseError: null,
       fileError: null,
+      openError: null,
+      notice: null,
       filter: DEFAULT_FILTER(),
       stepId: hash?.step ?? null,
       tab: hash?.tab ?? state.tab,
@@ -110,9 +118,59 @@ function beginSource(source) {
    renderAll();
 }
 
-function openHandle(handle) {
-   beginSource({ kind: 'live', name: handle.name, handle });
+function openHandle(handle, folder = '') {
+   beginSource({ kind: 'live', name: handle.name, handle, folder });
    return watcher.watch(handle);
+}
+
+function openText(text) {
+   beginSource({ kind: 'pasted', name: 'pasted JSON' });
+   applyText(text, { name: 'pasted JSON', modified: Date.now() });
+}
+
+function showError(e) {
+   state.notice = null;
+   state.openError = e;
+   renderBanner();
+}
+
+function clearMessages() {
+   state.notice = null;
+   state.openError = null;
+   renderBanner();
+}
+
+function openPicked(picked) {
+   if (!picked) return;
+   if (picked.handle) openHandle(picked.handle, picked.folder);
+   else if (picked.file) openFile(picked.file);
+   else if (picked.text) openText(picked.text);
+   else if (picked.path) openFromPath(picked);
+   else {
+      state.notice = `"${truncate(picked.unknown, 60)}" is not a path. Paste the full path to feature.json or its folder${IS_MAC ? ' (⌥⌘C in Finder copies it)' : ''}, the file itself, or its JSON.`;
+      renderBanner();
+   }
+}
+
+async function openFromPath({ path, raw }) {
+   if (!canWatch) {
+      state.notice = 'This browser cannot open a file by path. Drop the file on the page instead.';
+      renderBanner();
+      return;
+   }
+   const folder = isFolderPath(path);
+   if (path !== raw) navigator.clipboard?.writeText(path).catch(() => {});
+   const keys = IS_MAC ? '⌘⇧G, ⌘V, Enter' : 'Ctrl+V into the file name field, Enter';
+   state.notice = `A browser cannot open a path by itself. The path is in your clipboard: in the dialog press ${keys}${folder ? ', then confirm the folder' : ''}.`;
+   renderBanner();
+   try {
+      const picked = folder ? await pickFolder() : await pickFile();
+      state.notice = null;
+      renderBanner();
+      openPicked(picked);
+   } catch (e) {
+      showError(e);
+   }
 }
 
 async function openFile(file) {
@@ -127,14 +185,13 @@ async function openDemo() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       applyText(await res.text(), { name: 'sample.feature.json', modified: Date.now() });
    } catch (e) {
-      state.fileError = e;
-      renderBanner();
+      showError(e);
    }
 }
 
 function goHome() {
    watcher.stop();
-   Object.assign(state, { source: null, model: null, parseError: null, fileError: null });
+   Object.assign(state, { source: null, model: null, parseError: null, fileError: null, openError: null, notice: null });
    history.replaceState(null, '', location.pathname + location.search);
    renderAll();
 }
@@ -144,12 +201,11 @@ async function openFromPicker() {
       el.input.click();
       return;
    }
+   clearMessages();
    try {
-      const handle = await pickFile();
-      if (handle) openHandle(handle);
+      openPicked(await pickFile());
    } catch (e) {
-      state.fileError = e;
-      renderBanner();
+      showError(e);
    }
 }
 
@@ -157,15 +213,12 @@ async function openRecent(id) {
    const entry = state.recent.find((r) => r.id === id);
    if (!entry) return;
    el.recentMenu.open = false;
+   clearMessages();
    try {
-      if (await ensurePermission(entry.handle, true)) openHandle(entry.handle);
-      else {
-         state.fileError = new Error('permission to read the file was not given');
-         renderBanner();
-      }
+      if (await ensurePermission(entry.handle, true)) openHandle(entry.handle, entry.folder);
+      else showError(new Error('permission to read the file was not given'));
    } catch (e) {
-      state.fileError = e;
-      renderBanner();
+      showError(e);
    }
 }
 
@@ -209,7 +262,7 @@ function renderAll({ preserve = false } = {}) {
       el.tabs.innerHTML = '';
       el.app.innerHTML = state.source
          ? `<p class="empty-note pad">${state.parseError ? 'Waiting for valid JSON…' : `Loading ${esc(state.source.name)}…`}</p>`
-         : view.startHtml(state.recent, canWatch);
+         : view.startHtml(state.recent, canWatch, IS_MAC);
       return;
    }
    const tabs = view.tabsFor(m);
@@ -338,25 +391,30 @@ function renderFileInfo() {
       el.fileInfo.innerHTML = '';
       return;
    }
-   const status = s.kind === 'live'
-      ? `<span class="fi-status live" title="Watching the file for changes"><span class="live-dot" aria-hidden="true"></span>Live${state.updatedAt ? ` · changed ${formatTime(state.updatedAt)}` : ''}</span>`
-      : s.kind === 'demo'
-         ? '<span class="fi-status">Demo</span>'
-         : '<span class="fi-status" title="This browser cannot watch the file">Snapshot · drop again to update</span>';
+   const status = {
+      live: `<span class="fi-status live" title="Watching the file for changes"><span class="live-dot" aria-hidden="true"></span>Live${state.updatedAt ? ` · changed ${formatTime(state.updatedAt)}` : ''}</span>`,
+      demo: '<span class="fi-status">Demo</span>',
+      pasted: '<span class="fi-status">Pasted · paste again to update</span>',
+      snapshot: '<span class="fi-status" title="This copy of the file is not watched">Snapshot · drop or paste again to update</span>',
+   }[s.kind];
    const project = state.model?.project;
-   el.fileInfo.innerHTML = `<span class="fi-name">${esc(project || s.name)}</span>${project ? `<span class="fi-file">${esc(s.name)}</span>` : ''}${status}`;
+   const file = s.folder ? `${s.folder}/${s.name}` : s.name;
+   el.fileInfo.innerHTML = `<span class="fi-name">${esc(project || file)}</span>${project ? `<span class="fi-file">${esc(file)}</span>` : ''}${status}`;
 }
 
 function renderBanner() {
    const name = state.source?.name ?? 'the file';
    const live = state.source?.kind === 'live';
    const lines = [];
+   if (state.notice) lines.push({ icon: 'ℹ', text: state.notice });
    if (state.parseError) {
-      lines.push(`Can't parse ${name}: ${state.parseError}.${state.model ? ' Showing the last good version.' : ''}${live ? ' Waiting for the next change…' : ''}`);
+      lines.push({ icon: '⚠', text: `Can't parse ${name}: ${state.parseError}.${state.model ? ' Showing the last good version.' : ''}${live ? ' Waiting for the next change…' : ''}` });
    }
-   if (state.fileError) lines.push(`Can't read ${name}: ${state.fileError.message || state.fileError}.${live ? ' Retrying every second…' : ''}`);
+   if (state.fileError) lines.push({ icon: '⚠', text: `Can't read ${name}: ${state.fileError.message || state.fileError}.${live ? ' Retrying every second…' : ''}` });
+   if (state.openError) lines.push({ icon: '⚠', text: `Couldn't open it: ${state.openError.message || state.openError}.` });
    el.banner.hidden = !lines.length;
-   el.banner.innerHTML = lines.map((l) => `<div><span aria-hidden="true">⚠</span> ${esc(l)}</div>`).join('');
+   el.banner.classList.toggle('info', lines.every((l) => l.icon === 'ℹ'));
+   el.banner.innerHTML = lines.map((l) => `<div><span aria-hidden="true">${l.icon}</span> ${esc(l.text)}</div>`).join('');
 }
 
 function renderRecentMenu() {
@@ -463,10 +521,15 @@ window.addEventListener('drop', (e) => {
    e.preventDefault();
    dragDepth = 0;
    el.overlay.hidden = true;
-   takeDrop(e.dataTransfer).then((picked) => {
-      if (picked?.handle) openHandle(picked.handle);
-      else if (picked?.file) openFile(picked.file);
-   });
+   clearMessages();
+   takeDrop(e.dataTransfer).then(openPicked, showError);
+});
+
+document.addEventListener('paste', (e) => {
+   if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+   e.preventDefault();
+   clearMessages();
+   takePaste(e.clipboardData).then(openPicked, showError);
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -476,7 +539,7 @@ window.addEventListener('focus', () => watcher.poke());
 
 new ResizeObserver(() => document.documentElement.style.setProperty('--chrome-h', `${chromeHeight()}px`)).observe(el.chrome);
 
-window.featureJsonViewer = { openHandle, openFile, openDemo };
+window.featureJsonViewer = { openHandle, openFile, openText, openDemo };
 
 async function boot() {
    try {
@@ -489,7 +552,7 @@ async function boot() {
    pendingHash = location.hash ? readHash() : null;
    state.recent = await listRecent();
    const last = state.recent[0];
-   if (last && (await ensurePermission(last.handle, false).catch(() => false))) openHandle(last.handle);
+   if (last && (await ensurePermission(last.handle, false).catch(() => false))) openHandle(last.handle, last.folder);
    else renderAll();
 }
 

@@ -3,31 +3,92 @@ const STORE = 'recent';
 const MAX_RECENT = 10;
 const POLL_MS = 1000;
 
+const FEATURE_FILE = 'feature.json';
+const PICKER_ID = 'feature-json';
+
 export const canWatch = typeof window.showOpenFilePicker === 'function';
 
-export async function pickFile() {
+async function cancellable(open) {
    try {
-      const [handle] = await window.showOpenFilePicker({
-         types: [{ description: 'feature.json', accept: { 'application/json': ['.json'] } }],
-      });
-      return handle;
+      return await open();
    } catch (e) {
       if (e.name === 'AbortError') return null;
       throw e;
    }
 }
 
-export function takeDrop(dataTransfer) {
-   const item = [...(dataTransfer?.items ?? [])].find((i) => i.kind === 'file');
-   if (item && typeof item.getAsFileSystemHandle === 'function') {
-      const file = item.getAsFile();
-      return item
-         .getAsFileSystemHandle()
-         .then((handle) => (handle?.kind === 'file' ? { handle } : { file }))
-         .catch(() => ({ file }));
+export function pickFile() {
+   return cancellable(async () => {
+      const [handle] = await window.showOpenFilePicker({
+         id: PICKER_ID,
+         types: [{ description: 'feature.json', accept: { 'application/json': ['.json'] } }],
+      });
+      return { handle };
+   });
+}
+
+export function pickFolder() {
+   return cancellable(async () => resolveHandle(await window.showDirectoryPicker({ id: PICKER_ID, mode: 'read' })));
+}
+
+async function resolveHandle(handle) {
+   if (handle.kind === 'file') return { handle };
+   try {
+      return { handle: await handle.getFileHandle(FEATURE_FILE), folder: handle.name };
+   } catch (e) {
+      if (e.name === 'NotFoundError' || e.name === 'TypeMismatchError') throw new Error(`the folder "${handle.name}" has no ${FEATURE_FILE}`);
+      throw e;
    }
+}
+
+function fromItem(item) {
+   const file = item.getAsFile();
+   const fallback = file ? { file } : null;
+   if (typeof item.getAsFileSystemHandle !== 'function') return Promise.resolve(fallback);
+   return item
+      .getAsFileSystemHandle()
+      .catch(() => null)
+      .then((handle) => (handle ? resolveHandle(handle) : fallback));
+}
+
+const fileItem = (data) => [...(data?.items ?? [])].find((i) => i.kind === 'file');
+
+export function takeDrop(dataTransfer) {
+   const item = fileItem(dataTransfer);
+   if (item) return fromItem(item);
    const file = dataTransfer?.files?.[0];
    return Promise.resolve(file ? { file } : null);
+}
+
+export function takePaste(clipboard) {
+   const item = fileItem(clipboard);
+   if (item) return fromItem(item);
+   const raw = clipboard?.getData('text/plain')?.trim() ?? '';
+   if (!raw) return Promise.resolve(null);
+   if (/^[[{]/.test(raw)) return Promise.resolve({ text: raw });
+   const path = normalizePath(raw);
+   return Promise.resolve(path ? { path, raw } : { unknown: raw });
+}
+
+export function normalizePath(text) {
+   if (/[\r\n]/.test(text)) return null;
+   let p = text.trim();
+   if (/^(['"]).+\1$/.test(p)) p = p.slice(1, -1);
+   if (p.startsWith('file://')) {
+      try {
+         p = decodeURIComponent(new URL(p).pathname);
+      } catch {
+         return null;
+      }
+   }
+   if (/^[A-Za-z]:[\\/]/.test(p)) return p;
+   if (!/^(\/|~\/)/.test(p)) return null;
+   return p.replace(/\\(.)/g, '$1');
+}
+
+export function isFolderPath(path) {
+   const last = path.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? '';
+   return /[\\/]$/.test(path) || !/\.[A-Za-z0-9]{1,8}$/.test(last);
 }
 
 export class Watcher {

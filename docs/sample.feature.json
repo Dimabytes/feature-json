@@ -1,0 +1,198 @@
+{
+   "project": "NotesApp",
+   "relatedSources": [
+      "tasks/offline-sync/PLAN.md",
+      "docs/sync-protocol.md",
+      "apps/api/src/sync/",
+      "apps/web/src/store/",
+      "https://github.com/Dimabytes/feature-json"
+   ],
+   "Functional Requirements Summary": [
+      "FR-1: A note edited offline is saved on the device and sent to the server when the connection returns",
+      "FR-2: Each note has a `sync_version`; the server rejects a write with an old version",
+      "FR-3: Two edits of the same note on two devices merge field by field; a conflict on one field keeps both texts",
+      "FR-4: The header shows the sync state: synced, syncing, offline, conflict",
+      "FR-5: Sync works for 10⁴ notes per account without blocking the editor"
+   ],
+   "Resolved Questions": [
+      "The server is the source of truth: the client never overwrites a newer `sync_version`.",
+      "A conflict on one field keeps both texts in the note with a marker; the user resolves it by hand.",
+      "Push notifications about remote edits were dropped: polling every 30 s is enough for V1 (see STEP-007).",
+      "The release is one deploy of `api` and `web`; there is no feature flag."
+   ],
+   "Non-Goals (Out of Scope for V1)": [
+      "Real-time collaborative editing",
+      "Sync of attachments larger than 10 MB",
+      "A history of note versions"
+   ],
+   "description": "Offline sync for notes: edits made without a connection are queued on the device and merged on the server, and the header shows the sync state.",
+   "tracks": {
+      "api": "Worktree `../notes-api`, branch `sync-api` from `main`. Server endpoints and merge.",
+      "web": "Worktree `../notes-web`, branch `sync-web` from `main`. Client queue and UI."
+   },
+   "Orchestration Notes": [
+      "Run `make test` after each step; the full e2e suite runs once in STEP-006.",
+      "Never push: the owner pushes after STEP-008."
+   ],
+   "steps": [
+      {
+         "id": "STEP-001",
+         "title": "Add `sync_version` to notes",
+         "description": "Adds a version counter to every note. The API and the client compare it to find stale writes (FR-2).",
+         "changes": [
+            "Add column `sync_version` (integer, default 0) to the `notes` table",
+            "Every update of a note increments `sync_version` in the same transaction",
+            "Generate and run the migration",
+            "Add or update automated tests",
+            "Tests pass",
+            "Typecheck passes"
+         ],
+         "priority": 1,
+         "passes": true,
+         "ticket": "NOTES-101",
+         "designReference": [],
+         "dependsOn": []
+      },
+      {
+         "id": "STEP-002",
+         "title": "Sync endpoint with version check",
+         "description": "`POST /sync` takes a batch of edits and rejects every edit whose `sync_version` is older than the server one.",
+         "changes": [
+            "`POST /sync` accepts up to 500 edits per request",
+            "An edit with an old `sync_version` returns `409` with the current note",
+            "The response lists the new `sync_version` of every applied edit",
+            "Add or update automated tests",
+            "Tests pass",
+            "Typecheck passes"
+         ],
+         "priority": 2,
+         "passes": true,
+         "ticket": "NOTES-102",
+         "designReference": [],
+         "dependsOn": ["STEP-001"],
+         "track": "api"
+      },
+      {
+         "id": "STEP-003",
+         "title": "Field-by-field merge on conflict",
+         "description": "When two devices edit one note, the server merges the fields. A conflict on one field keeps both texts with a marker (FR-3).",
+         "changes": [
+            "Merge runs on `title`, `body`, `tags` separately",
+            "A conflict on `body` stores both texts between `<<<<` and `>>>>` markers",
+            "A conflict on `tags` keeps the union",
+            "The merged note gets a new `sync_version`",
+            "Add or update automated tests",
+            "Tests pass",
+            "Typecheck passes"
+         ],
+         "priority": 3,
+         "passes": false,
+         "ticket": "",
+         "designReference": [],
+         "dependsOn": ["STEP-002"],
+         "track": "api"
+      },
+      {
+         "id": "STEP-004",
+         "title": "Offline queue in the web client",
+         "description": "The client saves edits to IndexedDB when offline and sends them in order when the connection returns (FR-1).",
+         "changes": [
+            "Edits made offline are written to the `outbox` store in IndexedDB",
+            "On `online`, the client sends the outbox in batches of 500 to `POST /sync`",
+            "A `409` reply replaces the local note with the server one",
+            "Add or update automated tests",
+            "Tests pass",
+            "Typecheck passes",
+            "Verify in browser using agent-browser"
+         ],
+         "priority": 4,
+         "passes": true,
+         "ticket": "",
+         "designReference": [],
+         "dependsOn": ["STEP-001"],
+         "track": "web"
+      },
+      {
+         "id": "STEP-005",
+         "title": "Sync state in the header",
+         "description": "Shows the sync state in the app header (FR-4).",
+         "changes": [
+            "Header shows one of: synced, syncing, offline, conflict",
+            "Clicking `conflict` opens the first note with a conflict marker",
+            "Typecheck passes",
+            "Verify in browser using agent-browser"
+         ],
+         "priority": 5,
+         "passes": false,
+         "ticket": "",
+         "designReference": ["https://www.figma.com/file/example/sync-header"],
+         "dependsOn": ["STEP-004"],
+         "track": "web",
+         "skipReview": true
+      },
+      {
+         "id": "REVIEW-001",
+         "title": "Review of the sync protocol (STEP-003, STEP-005)",
+         "description": "The server merge and the client queue meet in one protocol. They are checked together before the end-to-end tests build on them.",
+         "reviewOf": ["STEP-003", "STEP-005"],
+         "changes": [
+            "Client and server use one definition of the edit batch",
+            "Every `409` the server can return is handled by the client",
+            "A conflict made by STEP-003 reaches the `conflict` state of STEP-005",
+            "Tests pass"
+         ],
+         "priority": 6,
+         "passes": false,
+         "ticket": "",
+         "designReference": [],
+         "dependsOn": ["STEP-003", "STEP-005"]
+      },
+      {
+         "id": "STEP-006",
+         "title": "End-to-end sync tests",
+         "description": "Runs two browser clients against one server and checks offline edits, conflicts and the header state.",
+         "changes": [
+            "Test: edit offline on client A, reconnect, the edit appears on client B",
+            "Test: edit the same note on A and B offline, both texts survive",
+            "Test: 10⁴ notes sync in under 60 s (FR-5)",
+            "Tests pass"
+         ],
+         "priority": 7,
+         "passes": false,
+         "ticket": "",
+         "designReference": [],
+         "dependsOn": ["REVIEW-001"]
+      },
+      {
+         "id": "STEP-007",
+         "title": "Push notifications about remote edits",
+         "description": "Notify other devices about a remote edit with a web push. Cancelled by the owner on 2026-11-12: polling is enough for V1.",
+         "changes": [
+            "Server sends a web push on every applied edit",
+            "Client refreshes the note on push"
+         ],
+         "priority": 8,
+         "passes": false,
+         "ticket": "",
+         "designReference": [],
+         "dependsOn": ["STEP-002"],
+         "track": "api",
+         "cancelled": true
+      },
+      {
+         "id": "STEP-008",
+         "title": "Release `api` and `web`",
+         "description": "The owner deploys both apps once and watches the first hour of sync errors.",
+         "changes": [
+            "Owner merges `sync-api` and `sync-web` into `main` and deploys",
+            "Sync error rate stays under 0.1% in the first hour"
+         ],
+         "priority": 9,
+         "passes": false,
+         "ticket": "",
+         "designReference": [],
+         "dependsOn": ["STEP-006"],
+         "manual": true
+      }
+   ]
+}

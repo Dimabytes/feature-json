@@ -37,6 +37,19 @@ Optional step fields:
 
 By default orchestrate runs one step at a time in `priority` order. Ask it to run steps in parallel, and it starts every step whose dependencies passed and whose track is free. The full rules are in [`skills/feature-json-init/SKILL.md`](skills/feature-json-init/SKILL.md) → "Parallel steps".
 
+## Viewer
+
+**https://dimabytes.github.io/feature-json/** — read a `feature.json` in the browser instead of the raw JSON.
+
+- Drop the file on the page or click **Open…**. The file stays in your browser and is never uploaded.
+- **Steps**: every step with its status (passed, ready to start, blocked, cancelled), filters by status and track, search, and a card with `changes`, `dependsOn`, the steps it blocks and its reviews. Keys `j` / `k` move between steps.
+- **Graph**: one lane per track, columns by dependency depth. Hover a step to trace its chain, click to open it.
+- Requirements, resolved questions, non-goals, sources and tracks get their own tabs, and so does any other top-level key.
+- **Warnings** lists what breaks the rules of `feature-json-init`: unknown or cyclic dependencies, duplicate ids, unknown tracks.
+- In Chrome, Edge, Arc or Brave the page redraws by itself when the file changes on disk, so you can keep it open while `/feature-json-orchestrate` runs. **Recent** reopens a file after a page reload.
+
+The source is plain HTML and JS in [`docs/`](docs/), with no build step. To run it locally: `python3 -m http.server -d docs` and open http://localhost:8000.
+
 ## Project config
 
 Optional `.feature-json.config.json` in the repo root, committed with the project. It sets the model for plan / implement / review and extra rules for each phase. No file → the default loop on the current model.

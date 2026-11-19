@@ -2,9 +2,9 @@ import { centerOn, markSelected, mountGraph } from './graph.js';
 import { buildModel } from './model.js';
 import * as view from './render.js';
 import {
-   canWatch, ensurePermission, forgetRecent, isFolderPath, listRecent, pickFile, pickFolder, rememberRecent, takeDrop, takePaste, Watcher,
+   canWatch, ensurePermission, forgetRecent, listRecent, pickFile, rememberRecent, takeDrop, Watcher,
 } from './source.js';
-import { esc, truncate } from './text.js';
+import { esc } from './text.js';
 
 const $ = (sel) => document.querySelector(sel);
 const el = {
@@ -23,7 +23,6 @@ const el = {
 const THEMES = ['system', 'light', 'dark'];
 const THEME_ICON = { system: '◐', light: '☀︎', dark: '☾' };
 const DEFAULT_FILTER = () => ({ status: 'all', track: '*', q: '' });
-const IS_MAC = /Mac/i.test(navigator.userAgentData?.platform ?? navigator.platform ?? '');
 
 const state = {
    source: null,
@@ -32,7 +31,6 @@ const state = {
    parseError: null,
    fileError: null,
    openError: null,
-   notice: null,
    recent: [],
    tab: 'steps',
    stepId: null,
@@ -110,7 +108,6 @@ function beginSource(source) {
       parseError: null,
       fileError: null,
       openError: null,
-      notice: null,
       filter: DEFAULT_FILTER(),
       stepId: hash?.step ?? null,
       tab: hash?.tab ?? state.tab,
@@ -123,54 +120,19 @@ function openHandle(handle, folder = '') {
    return watcher.watch(handle);
 }
 
-function openText(text) {
-   beginSource({ kind: 'pasted', name: 'pasted JSON' });
-   applyText(text, { name: 'pasted JSON', modified: Date.now() });
-}
-
 function showError(e) {
-   state.notice = null;
    state.openError = e;
    renderBanner();
 }
 
-function clearMessages() {
-   state.notice = null;
+function clearOpenError() {
    state.openError = null;
    renderBanner();
 }
 
 function openPicked(picked) {
-   if (!picked) return;
-   if (picked.handle) openHandle(picked.handle, picked.folder);
-   else if (picked.file) openFile(picked.file);
-   else if (picked.text) openText(picked.text);
-   else if (picked.path) openFromPath(picked);
-   else {
-      state.notice = `"${truncate(picked.unknown, 60)}" is not a path. Paste the full path to feature.json or its folder${IS_MAC ? ' (⌥⌘C in Finder copies it)' : ''}, the file itself, or its JSON.`;
-      renderBanner();
-   }
-}
-
-async function openFromPath({ path, raw }) {
-   if (!canWatch) {
-      state.notice = 'This browser cannot open a file by path. Drop the file on the page instead.';
-      renderBanner();
-      return;
-   }
-   const folder = isFolderPath(path);
-   if (path !== raw) navigator.clipboard?.writeText(path).catch(() => {});
-   const keys = IS_MAC ? '⌘⇧G, ⌘V, Enter' : 'Ctrl+V into the file name field, Enter';
-   state.notice = `A browser cannot open a path by itself. The path is in your clipboard: in the dialog press ${keys}${folder ? ', then confirm the folder' : ''}.`;
-   renderBanner();
-   try {
-      const picked = folder ? await pickFolder() : await pickFile();
-      state.notice = null;
-      renderBanner();
-      openPicked(picked);
-   } catch (e) {
-      showError(e);
-   }
+   if (picked?.handle) openHandle(picked.handle, picked.folder);
+   else if (picked?.file) openFile(picked.file);
 }
 
 async function openFile(file) {
@@ -191,7 +153,7 @@ async function openDemo() {
 
 function goHome() {
    watcher.stop();
-   Object.assign(state, { source: null, model: null, parseError: null, fileError: null, openError: null, notice: null });
+   Object.assign(state, { source: null, model: null, parseError: null, fileError: null, openError: null });
    history.replaceState(null, '', location.pathname + location.search);
    renderAll();
 }
@@ -201,7 +163,7 @@ async function openFromPicker() {
       el.input.click();
       return;
    }
-   clearMessages();
+   clearOpenError();
    try {
       openPicked(await pickFile());
    } catch (e) {
@@ -213,7 +175,7 @@ async function openRecent(id) {
    const entry = state.recent.find((r) => r.id === id);
    if (!entry) return;
    el.recentMenu.open = false;
-   clearMessages();
+   clearOpenError();
    try {
       if (await ensurePermission(entry.handle, true)) openHandle(entry.handle, entry.folder);
       else showError(new Error('permission to read the file was not given'));
@@ -262,7 +224,7 @@ function renderAll({ preserve = false } = {}) {
       el.tabs.innerHTML = '';
       el.app.innerHTML = state.source
          ? `<p class="empty-note pad">${state.parseError ? 'Waiting for valid JSON…' : `Loading ${esc(state.source.name)}…`}</p>`
-         : view.startHtml(state.recent, canWatch, IS_MAC);
+         : view.startHtml(state.recent, canWatch);
       return;
    }
    const tabs = view.tabsFor(m);
@@ -394,8 +356,7 @@ function renderFileInfo() {
    const status = {
       live: `<span class="fi-status live" title="Watching the file for changes"><span class="live-dot" aria-hidden="true"></span>Live${state.updatedAt ? ` · changed ${formatTime(state.updatedAt)}` : ''}</span>`,
       demo: '<span class="fi-status">Demo</span>',
-      pasted: '<span class="fi-status">Pasted · paste again to update</span>',
-      snapshot: '<span class="fi-status" title="This copy of the file is not watched">Snapshot · drop or paste again to update</span>',
+      snapshot: '<span class="fi-status" title="This copy of the file is not watched">Snapshot · drop again to update</span>',
    }[s.kind];
    const project = state.model?.project;
    const file = s.folder ? `${s.folder}/${s.name}` : s.name;
@@ -406,14 +367,12 @@ function renderBanner() {
    const name = state.source?.name ?? 'the file';
    const live = state.source?.kind === 'live';
    const lines = [];
-   if (state.notice) lines.push({ icon: 'ℹ', text: state.notice });
    if (state.parseError) {
       lines.push({ icon: '⚠', text: `Can't parse ${name}: ${state.parseError}.${state.model ? ' Showing the last good version.' : ''}${live ? ' Waiting for the next change…' : ''}` });
    }
    if (state.fileError) lines.push({ icon: '⚠', text: `Can't read ${name}: ${state.fileError.message || state.fileError}.${live ? ' Retrying every second…' : ''}` });
    if (state.openError) lines.push({ icon: '⚠', text: `Couldn't open it: ${state.openError.message || state.openError}.` });
    el.banner.hidden = !lines.length;
-   el.banner.classList.toggle('info', lines.every((l) => l.icon === 'ℹ'));
    el.banner.innerHTML = lines.map((l) => `<div><span aria-hidden="true">${l.icon}</span> ${esc(l.text)}</div>`).join('');
 }
 
@@ -521,15 +480,8 @@ window.addEventListener('drop', (e) => {
    e.preventDefault();
    dragDepth = 0;
    el.overlay.hidden = true;
-   clearMessages();
+   clearOpenError();
    takeDrop(e.dataTransfer).then(openPicked, showError);
-});
-
-document.addEventListener('paste', (e) => {
-   if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
-   e.preventDefault();
-   clearMessages();
-   takePaste(e.clipboardData).then(openPicked, showError);
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -539,7 +491,7 @@ window.addEventListener('focus', () => watcher.poke());
 
 new ResizeObserver(() => document.documentElement.style.setProperty('--chrome-h', `${chromeHeight()}px`)).observe(el.chrome);
 
-window.featureJsonViewer = { openHandle, openFile, openText, openDemo };
+window.featureJsonViewer = { openHandle, openFile, openDemo };
 
 async function boot() {
    try {

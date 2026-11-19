@@ -239,14 +239,12 @@ export function recentListHtml(recent) {
       .join('')}</ul>`;
 }
 
-export function startHtml(recent, canWatch, isMac) {
-   const paste = isMac ? '⌘V' : 'Ctrl+V';
+export function startHtml(recent, canWatch) {
    return `<section class="start">
       <div class="dropzone">
          <div class="dz-mark" aria-hidden="true">{ }</div>
          <h1>Drop a <code>feature.json</code> or its task folder here</h1>
          <p class="dz-actions"><button class="btn primary" data-action="open">Choose a file</button><button class="btn ghost" data-action="demo">Open the demo</button></p>
-         <p class="paste-hint">Or press <kbd>${paste}</kbd> with a path to the file or its folder${isMac ? ' (<kbd>⌥⌘C</kbd> in Finder)' : ''}, the file copied in ${isMac ? 'Finder' : 'your file manager'}, or its JSON.</p>
          <p class="muted small">The file is read in your browser and never uploaded.
          ${canWatch ? 'The page redraws itself when the file changes on disk.' : 'Live reload needs Chrome, Edge, Arc or Brave. In this browser drop the file again after a change.'}</p>
       </div>
